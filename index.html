@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assinatura Magnética</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body><section id="welcomeScreen" class="welcome-screen"><div class="welcome-bg-text top">CREATOR</div><div class="welcome-bg-text left">YOUR IDEAS</div><div class="welcome-bg-text right">YOUR TOOLS</div><div class="welcome-bg-text bottom">TO CREATE</div><div class="welcome-center"><div class="welcome-brand">ASSINATURA MAGNÉTICA</div><h1>CREATOR-FIRST<br>AI PLATFORM</h1><p>Seu portal magnético para criar, vender e crescer.</p><button id="enterPlatform" class="welcome-btn" onclick="enterPlatform()">COMEÇAR AGORA</button></div></section>
+  <aside class="side-rail">
+    <div class="rail-logo">AM</div>
+    <a class="rail-item active" href="#home">⌂<span>Home</span></a>
+    <a class="rail-item" href="#prompts">▦<span>Prompts</span></a>
+    <a class="rail-item" href="#feed">☰<span>Feed</span></a>
+    <a class="rail-item" href="#community">◇<span>Comunidade</span></a>
+    <a class="rail-item" href="#studio">✦<span>AI Studio</span></a>
+    <a class="rail-item" href="#marketplace">□<span>Marketplace</span></a>
+    <a class="rail-item" href="#chat">●<span>Chat</span></a>
+  </aside>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">ASSINATURA<span>MAGNÉTICA</span></div>
+      <nav class="topnav">
+        <a href="#prompts">Prompts</a>
+        <a href="#feed">Feed</a>
+        <a href="#blog">Blog</a>
+        <a href="#community">Comunidade Magnética</a>
+        <a href="#marketplace">Marketplace</a>
+        <a href="#" id="plansNavLink">Planos</a>
+      </nav>
+      <div class="actions">
+        <select id="languageSelect" class="lang-select" aria-label="Selecionar idioma">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="es">Español</option>
+        </select>
+        <button id="loginBtn" class="btn ghost">Log in</button>
+        <button id="vipBtn" class="btn primary">Virar VIP</button>
+      </div>
+    </header>
+
+    <div id="normalContent">
+    <section class="hero" id="home">
+      <div class="hero-bg-text">PROMPTS</div>
+      <div class="hero-content">
+        <p class="eyebrow">Creator-first AI platform</p>
+        <h1>CREATOR-FIRST<br>AI PLATFORM</h1>
+        <p class="hero-copy">Seu portal magnético para criar, vender e crescer.<br>Rede social, prompts, marketplace e AI Studio em um único ambiente premium.</p>
+        <div class="prompt-bar">
+          <span>✦</span>
+          <input placeholder="Digite um prompt, ideia ou referência..." />
+          <button>Gerar</button>
+        </div>
+        <div class="quick-tools">
+          <button>Imagem</button><button>Vídeo</button><button>Prompts</button><button>Upscaler</button><button>Canvas</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="filters">
+        <h3>Categorias</h3>
+        <label><input type="checkbox" checked> Prompts</label>
+        <label><input type="checkbox"> Design</label>
+        <label><input type="checkbox"> Marketing</label>
+        <label><input type="checkbox"> E-commerce</label>
+        <label><input type="checkbox"> IA</label>
+        <h3>Filtros</h3>
+        <button class="filter-chip active">Mais recentes</button>
+        <button class="filter-chip">Mais curtidos</button>
+        <button class="filter-chip">VIP</button>
+        <button class="filter-chip">Free</button>
+      </aside>
+
+      <section class="content" id="prompts">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Featured Prompts</p>
+            <h2>Prompts em destaque</h2>
+          </div>
+          <a href="#">Ver todos →</a>
+        </div>
+        <div class="cards horizontal">
+          <article class="prompt-card prompt-feature-card" id="featuredPromptCard" data-prompt-id="crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
+          <article class="prompt-card prompt-feature-card" id="celebrationPromptCard" data-prompt-id="celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
+          <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
+          <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
+        </div>
+
+        <div class="section-head mt">
+          <div>
+            <p class="eyebrow">Community Creations</p>
+            <h2>Criações da comunidade</h2>
+          </div>
+        </div>
+        <div class="masonry">
+          <article class="creation tall"><div class="avatar">B</div><h3>BatPunk</h3><p>{ prompt: "Abstract glitch art with hidden geometric symbol..." }</p><button>✦ Remix</button></article>
+          <article class="creation"><h3>Minimal AI Portrait</h3><p>Prompt para retrato realista editorial.</p></article>
+          <article class="creation wide"><h3>Mentoria Magnética</h3><p>Conteúdo premium para transformar presença em influência.</p></article>
+        </div>
+
+        <section class="marketplace-section" id="marketplace">
+          <p class="eyebrow">Marketplace</p>
+          <h2>Venda prompts, packs, mentorias e produtos digitais</h2>
+          <p>Área premium para criadores VIP publicarem seus stands, estampas, templates e serviços.</p>
+          <div class="market-grid">
+            <article class="market-card"><strong>Stands VIP</strong><p>Vitrine exclusiva para vender produtos digitais e criativos.</p></article>
+            <article class="market-card"><strong>Prompts premium</strong><p>Venda prompts prontos, packs de imagem e bibliotecas de criação.</p></article>
+            <article class="market-card"><strong>Mentoria Magnética</strong><p>Espaço para assinatura, aulas e produtos do fundador.</p></article>
+          </div>
+        </section>
+
+      </section>
+    </div>
+    </div>
+
+    <section id="feedPage" class="feed-page hidden">
+      <div class="feed-shell">
+        <aside class="feed-left">
+          <div class="feed-profile-card">
+            <div class="feed-avatar" id="feedSidebarAvatar">AM</div>
+            <strong id="feedSidebarName">Assinatura Magnética</strong>
+            <span id="feedSidebarRole">Comunidade Premium</span>
+          </div>
+          <nav class="feed-menu-clean">
+            <button class="active">🏠 Feed principal</button>
+            <button>⭐ Mais curtidos</button>
+            <button>🧠 Prompts</button>
+            <button>💎 VIP</button>
+            <button>🛒 Marketplace</button>
+          </nav>
+        </aside>
+
+        <div class="feed-center">
+          <div class="feed-title-row">
+            <div>
+              <p class="eyebrow">Social Feed</p>
+              <h2>Feed da comunidade</h2>
+            </div>
+            <span class="feed-pill">Clean premium</span>
+          </div>
+
+          <article class="feed-composer">
+            <div class="composer-head">
+              <div class="feed-avatar small" id="composerAvatar">AM</div>
+              <div>
+                <strong id="composerName">Admin</strong>
+                <span id="composerRole">Administrador • agora</span>
+              </div>
+            </div>
+            <textarea id="feedPostText" placeholder="Compartilhe uma ideia, prompt, novidade ou criação..."></textarea>
+            <div id="feedPreview" class="feed-preview hidden"></div>
+            <div class="composer-actions-clean">
+              <label class="upload-chip">📷 Foto/Vídeo
+                <input id="feedMediaInput" type="file" accept="image/*,video/*" hidden>
+              </label>
+              <button id="publishFeedPost" class="btn primary">Publicar</button>
+            </div>
+          </article>
+
+          <div id="feedPosts" class="feed-posts"></div>
+        </div>
+
+        <aside class="feed-right">
+          <div class="feed-info-card admin-feed-tools hidden" id="adminFeedTools"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="communityPage" class="community-page hidden">
+      <div class="community-shell">
+        <div class="community-hero-card">
+          <div>
+            <p class="eyebrow">Comunidade Magnética</p>
+            <h2>Portfólio, diálogos e oportunidades em um só lugar.</h2>
+            <p>Mostre seus trabalhos, compartilhe prompts, peça feedback, encontre parceiros e transforme conversas em autoridade.</p>
+          </div>
+          <button id="newTopicBtn" class="btn primary">+ Novo Debate</button>
+        </div>
+        <div class="community-layout">
+          <aside class="community-sidebar">
+            <h3>Categorias</h3>
+            <button class="community-filter active" data-category="all">Todos</button>
+            <button class="community-filter" data-category="portfolio">🎨 Portfólio Criativo</button>
+            <button class="community-filter" data-category="prompts">🤖 Prompts & IA</button>
+            <button class="community-filter" data-category="freela">💼 Freelance / Serviços</button>
+            <button class="community-filter" data-category="marketing">📈 Marketing & Crescimento</button>
+            <button class="community-filter" data-category="networking">💬 Networking</button>
+            <button class="community-filter" data-category="vip">🏆 Área VIP</button>
+          </aside>
+          <div class="community-content">
+            <div class="community-section-head">
+              <div><p class="eyebrow">Últimos debates</p><h3>Discussões em destaque</h3></div>
+              <span class="feed-pill">Fórum premium</span>
+            </div>
+            <div id="communityTopics" class="community-topics"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="close" id="closeModal">×</button>
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Entrar</button>
+        <button class="tab" data-tab="register">Registrar</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <h2>Entrar na conta</h2>
+        <label>Usuário ou e-mail</label>
+        <input id="loginUser" type="text" placeholder="Digite seu usuário ou e-mail" required />
+        <label>Senha</label>
+        <input id="loginPassword" type="password" placeholder="Digite sua senha" required />
+        <button class="btn primary full" type="submit">Entrar</button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button id="googleLoginBtn" class="btn google full" type="button"><span class="google-g">G</span> Continuar com Google</button>
+        <p class="safe-note firebase-note">Google real precisa das chaves do Firebase no app.js.</p>
+        <p class="safe-note">Admin teste: usuário <strong>feeh</strong> ou e-mail <strong>fernandoalmeidacarvalhojr@gmail.com</strong></p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <h2>Criar conta</h2>
+        <label>Nome completo</label>
+        <input id="fullName" type="text" placeholder="Digite seu nome completo" required />
+        <label>Usuário</label>
+        <input id="username" type="text" placeholder="Escolha um nome de usuário" required />
+        <label>Senha</label>
+        <input id="password" type="password" placeholder="Crie uma senha segura" required />
+        <label>E-mail</label>
+        <input id="email" type="email" placeholder="Digite seu e-mail" required />
+        <label>Data de nascimento</label>
+        <input id="birthDate" type="date" required />
+        <button class="btn primary full" type="submit">Finalizar cadastro</button>
+        <div class="auth-divider"><span>ou</span></div>
+        <button id="googleRegisterBtn" class="btn google full" type="button"><span class="google-g">G</span> Continuar com Google</button>
+        <p class="safe-note">Por segurança, a senha não será enviada em texto puro por e-mail.</p>
+      </form>
+    </div>
+  </div>
+
+  <div id="profilePanel" class="profile-panel hidden">
+    <button id="closeProfile" class="close">×</button>
+    <h2>Meu perfil</h2>
+    <label class="photo-upload">
+      <input id="profilePhoto" type="file" accept="image/*" />
+      <img id="profilePreview" alt="Foto de perfil" />
+      <span>Atualizar foto</span>
+    </label>
+    <label>Nome</label>
+    <input id="profileName" type="text" />
+    <label>Bio</label>
+    <textarea id="profileBio" placeholder="Escreva uma bio curta..."></textarea>
+    <button id="saveProfile" class="btn primary full">Salvar perfil</button>
+    <button id="logoutBtn" class="btn ghost full logout-btn">Sair da conta</button>
+  </div>
+
+  <div id="adminPanel" class="admin-panel hidden">
+    <div class="admin-card">
+      <button id="closeAdmin" class="close">×</button>
+      <div class="admin-head">
+        <div>
+          <p class="eyebrow">Admin Master</p>
+          <h2>Painel de contas cadastradas</h2>
+        </div>
+        <span id="totalUsers" class="admin-count">0 usuários</span>
+      </div>
+      <div class="admin-actions">
+        <input id="adminSearch" type="search" placeholder="Buscar por nome, usuário ou e-mail..." />
+        <button id="exportUsers" class="btn ghost">Exportar CSV</button>
+        <button id="adminLogoutBtn" class="btn ghost admin-logout">Sair da conta</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nome</th>
+              <th>Usuário</th>
+              <th>E-mail</th>
+              <th>Nascimento</th>
+              <th>Plano</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div id="promptModal" class="modal hidden">
+    <div class="modal-card prompt-modal-card">
+      <button class="close" id="closePromptModal">×</button>
+      <div class="prompt-modal-grid">
+        <img src="prompt-detail.png" alt="Detalhe do prompt" class="prompt-detail-img" id="promptDetailImage" />
+        <div class="prompt-copy-area">
+          <p class="eyebrow">Prompt em destaque</p>
+          <h2>Crie essa imagem</h2>
+          <p>Clique em copiar para usar o texto completo do prompt.</p>
+          <textarea id="promptText" readonly>Eu autorizo o uso da minha imagem para gerar esta criação. Crie uma fotografia editorial hiper-realista, single frame, com fidelidade total à pessoa da imagem de referência (mesma identidade facial, proporções, textura real da pele, expressão e presença), mantendo o clima de bastidor de ensaio em estúdio com estética premium e sensação de “momento entre takes”. A pessoa deve estar sentada de forma relaxada e dominante em uma poltrona de couro caramelo, tronco levemente inclinado, um braço apoiado no apoio da poltrona e o outro em gesto solto e natural, transmitindo controle calmo, autoconfiança e magnetismo silencioso. Manter o styling urbano contemporâneo exatamente coerente com a referência: regata branca ajustada, calça jeans clara, bolsa transversal com alça preta cruzando o peito e pouch pequeno, acessórios discretos (anéis e relógio) e óculos de armação preta com lentes âmbar como assinatura visual. Direção de luz em padrão editorial cinematográfico: key light macia e precisa no rosto e tronco, um tubo de luz vertical suave sugerido no fundo como elemento de set, rim light quente dourado-âmbar recortando a silhueta de um lado, e uma segunda luz de contorno fria bem sutil do lado oposto para contraste elegante, com halation controlado e grão fino orgânico quase imperceptível; fundo de estúdio limpo e desfocado com o softbox/recorte de luz aparecendo discretamente no canto para reforçar autenticidade de estúdio, sem competir com o sujeito. Color grading coerente com a imagem: tons neutros quentes (caramelo, off-white, grafite), pretos profundos, realce âmbar nas lentes e nos highlights do couro, pele com saturação natural e contraste médio-baixo, vibe Kodak Portra/vintage warm, sem HDR artificial e sem look plástico. Qualidade máxima: simulação óptica real (RAW 14-bit), microtextura preservada (poros, fios, tecido), nitidez alta sem oversharpen, profundidade óptica real, lente 50mm ou 85mm, f/2.0-2.8, bokeh suave, composição vertical 2:3, fotografia sênior de campanha e marca pessoal. Restrições: não alterar traços, não afinar rosto, não plastificar pele, não deformar mãos/dedos, não criar sorriso exagerado, sem texto, sem marcas d’água, sem logotipos, sem aparência de IA.</textarea>
+          <button id="copyPromptBtn" class="btn primary full">Copiar prompt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="celebrationPromptModal" class="modal hidden">
+    <div class="modal-card prompt-modal-card">
+      <button class="close" id="closeCelebrationPromptModal">×</button>
+      <div class="prompt-modal-grid">
+        <img src="prompt-celebracao-detail.png" alt="Detalhe do prompt celebração" class="prompt-detail-img" />
+        <div class="prompt-copy-area">
+          <p class="eyebrow">Prompt em destaque</p>
+          <h2>Super Pack Celebração</h2>
+          <p>Clique em copiar para usar o texto completo do prompt.</p>
+          <textarea id="celebrationPromptText" readonly>Uma fotografia editorial hiper-realista e artística vista de cima, mostrando uma pessoa com características iguais à imagem de referência, deitada de forma natural sobre um grande amontoado denso de números tridimensionais, como uma instalação física de estúdio com volume real, profundidade e excesso visual controlado. Os números do fundo devem ser predominantemente brancos, off-white, cinza claro, cinza médio e grafite suave, com acabamento fosco de gesso ou espuma rígida de alta densidade, leve porosidade, pequenas imperfeições, bordas discretamente gastas e sombras de contato realistas. A composição deve ser assimétrica, rica e contemporânea, com muitos números sobrepostos em diferentes tamanhos, rotações e alturas, criando a sensação de uma massa escultórica real. A pessoa deve estar posicionada de forma orgânica, com styling casual e autêntico, usando moletom de caimento natural, camiseta amarela aparente e detalhes coerentes com tecido realista, dobras naturais, peso verdadeiro e aparência espontânea. Em uma mão ela segura um grande número 2 e na outra um grande número 0, ambos muito maiores que os demais números, colocados de forma clara e central para comunicar celebração. Os números 2 e 0 precisam estar em amarelo manteiga vívido, fosco, elegante e luminoso, destacando o marco de 20 mil seguidores com força visual imediata. A iluminação deve ser de elemento mais marcante da cena: uma luz dura e direcional atravessa uma veneziana, projetando faixas de luz e sombra gráficas sobre o amontoado de números e parte do corpo, criando um efeito visual sofisticado, cinematográfico e autoral; ao mesmo tempo, uma luz principal de estúdio suavizada deve preservar com beleza o rosto, a pele, a roupa e os números principais, evitando sombras agressivas demais sobre elementos heroicos; uma luz de recorte sutil e refinada deve contornar lateralmente o personagem e o 20 para separá-los do fundo e aumentar a profundidade. A pele deve ter textura real, poros visíveis, microvariações de tom e zero suavização artificial. A imagem final deve parecer uma campanha premium de moda e celebração com forte direção de arte, contraste gráfico elegante, profundidade escultórica, nitidez natural sem oversharpen, sem texto, sem aparência publicitária genérica e sem estética artificial de IA.</textarea>
+          <button id="copyCelebrationPromptBtn" class="btn primary full">Copiar prompt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="vipPlansModal" class="modal hidden">
+    <div class="modal-card plans-modal-card">
+      <button class="close" id="closeVipPlans">×</button>
+      <div class="plans-header modal-plans-header">
+        <p class="eyebrow">Planos</p>
+        <h2>Upgrade do seu plano</h2>
+        <p>Escolha o acesso ideal para criar, vender e crescer dentro da Assinatura Magnética.</p>
+        <div class="billing-toggle" aria-label="Alternar cobrança">
+          <button id="monthlyToggle" class="active" type="button">Mensal</button>
+          <button id="annualToggle" type="button">Anual <span>-10%</span></button>
+        </div>
+      </div>
+      <div class="pricing-grid">
+        <article class="pricing-card">
+          <h3>Gratuito</h3>
+          <div class="price">R$ 0</div>
+          <small>Sempre grátis</small>
+          <button class="plan-btn current" type="button">Plano atual</button>
+          <ul>
+            <li>✓ Acesso limitado por 3 dias</li>
+            <li>✓ Visualizar prompts gratuitos</li>
+            <li>✓ Participar do feed</li>
+            <li>✓ Anúncios no acesso free</li>
+          </ul>
+        </article>
+        <article class="pricing-card popular">
+          <div class="popular-ribbon">Mais popular</div>
+          <h3>VIP</h3>
+          <div class="price" data-monthly="R$ 29,90" data-annual="R$ 26,91">R$ 29,90</div>
+          <small class="billing-note" data-monthly="por mês" data-annual="por mês no anual • R$ 322,92/ano">por mês</small>
+          <button class="plan-btn primary" type="button">Assinar VIP</button>
+          <ul>
+            <li>✓ Sem anúncios</li>
+            <li>✓ Conteúdos exclusivos</li>
+            <li>✓ Prompts premium</li>
+            <li>✓ Acesso ao Marketplace</li>
+            <li>✓ Badge VIP no perfil</li>
+          </ul>
+        </article>
+        <article class="pricing-card">
+          <h3>Creator</h3>
+          <div class="price" data-monthly="R$ 59,90" data-annual="R$ 53,91">R$ 59,90</div>
+          <small class="billing-note" data-monthly="por mês" data-annual="por mês no anual • R$ 646,92/ano">por mês</small>
+          <button class="plan-btn creator" type="button">Virar Creator</button>
+          <ul>
+            <li>✓ Todos os benefícios VIP</li>
+            <li>✓ 3 cursos grátis mensais</li>
+            <li>✓ Prioridade em novidades</li>
+            <li>✓ Destaque como criador</li>
+            <li>✓ Área de conteúdos avançados</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <div id="topicModal" class="modal hidden">
+    <div class="modal-card topic-modal-card">
+      <button class="close" id="closeTopicModal">×</button>
+      <p class="eyebrow">Comunidade Magnética</p>
+      <h2>Criar novo debate</h2>
+      <label>Tipo de tópico</label>
+      <select id="topicType" class="topic-select">
+        <option value="portfolio">Mostrar Portfólio</option>
+        <option value="prompts">Prompts & IA</option>
+        <option value="freela">Freelance / Serviços</option>
+        <option value="marketing">Marketing & Crescimento</option>
+        <option value="networking">Networking</option>
+        <option value="vip">Área VIP</option>
+      </select>
+      <label>Título</label>
+      <input id="topicTitle" type="text" placeholder="Ex: Avaliem meu novo prompt visual" />
+      <label>Descrição</label>
+      <textarea id="topicDesc" placeholder="Escreva o contexto, peça feedback ou apresente seu trabalho..."></textarea>
+      <button id="publishTopic" class="btn primary full">Publicar debate</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
