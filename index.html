@@ -469,7 +469,6 @@
         <button class="client-nav" data-client-tab="services">🧾 Serviços e Faturas</button>
         <button class="client-nav" data-client-tab="support">🎧 Support</button>
         <button class="client-nav" data-client-tab="payments">💳 2ª via - Pagamentos</button>
-        <button class="client-nav" data-client-tab="base">📚 Menu Base</button>
         <button id="backFromClientArea" class="client-back">← Voltar ao site</button>
       </aside>
       <main class="client-main">
@@ -504,17 +503,21 @@
             <h3>Suporte</h3>
             <button id="newSupportTicketBtn" class="btn primary" type="button">Abrir Ticket</button>
           </div>
+          <div class="ticket-toolbar">
+            <input id="ticketSearchInput" type="search" placeholder="Buscar por protocolo, assunto, cliente ou status..." />
+            <select id="ticketStatusFilter">
+              <option value="all">Todos os status</option>
+              <option value="Aberto">Aberto</option>
+              <option value="Respondido">Respondido</option>
+              <option value="Encerrado">Encerrado</option>
+            </select>
+          </div>
           <div id="supportTicketsList" class="tickets-list"></div>
         </section>
 
         <section id="clientPayments" class="client-tab">
           <h3>2ª via - Pagamentos</h3>
           <div class="client-card"><p>Nenhuma fatura pendente no momento.</p></div>
-        </section>
-
-        <section id="clientBase" class="client-tab">
-          <h3>Menu Base</h3>
-          <div class="client-card"><p>Base de conhecimento e guia de conteúdos aparecerão aqui.</p></div>
         </section>
       </main>
     </div>
@@ -530,6 +533,20 @@
       <label>Mensagem</label>
       <textarea id="ticketMessage" placeholder="Explique sua solicitação..."></textarea>
       <button id="publishTicketBtn" class="btn primary full" type="button">Enviar solicitação</button>
+    </div>
+  </div>
+
+  
+  <div id="editTicketModal" class="modal hidden">
+    <div class="modal-card account-modal-card">
+      <button class="close" id="closeEditTicket">×</button>
+      <p class="eyebrow">Atendimento</p>
+      <h2>Editar Ticket</h2>
+      <label>Assunto</label>
+      <input id="editTicketSubject" type="text" placeholder="Assunto do ticket" />
+      <label>Mensagem</label>
+      <textarea id="editTicketMessage" placeholder="Mensagem do ticket"></textarea>
+      <button id="saveTicketEditBtn" class="btn primary full" type="button">Salvar alterações</button>
     </div>
   </div>
 

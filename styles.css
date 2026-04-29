@@ -942,3 +942,115 @@ body.dark-mode .notification-empty{
     right:-72px;
   }
 }
+
+
+
+
+/* V46 — Tickets profissionais */
+.ticket-toolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 220px;
+  gap:12px;
+  margin-bottom:18px;
+}
+.ticket-toolbar input,
+.ticket-toolbar select{
+  width:100%;
+  border:1px solid rgba(255,255,255,.10);
+  background:#0d1118;
+  color:#fff;
+  border-radius:16px;
+  padding:14px 16px;
+  font-weight:800;
+  outline:none;
+}
+.ticket-toolbar input::placeholder{color:rgba(255,255,255,.52)}
+.pro-ticket{
+  background:linear-gradient(180deg,#ffffff,#f8fbff)!important;
+  border:1px solid #dfe7f2!important;
+  border-radius:24px!important;
+  padding:22px!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.18)!important;
+  position:relative;
+  overflow:hidden;
+}
+.pro-ticket::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:6px;
+  background:#61a8ff;
+}
+.pro-ticket.respondido::before{background:#30c48d}
+.pro-ticket.encerrado::before{background:#98a2b3}
+.ticket-protocol{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#e7f1ff;
+  color:#235ea9;
+  border-radius:999px;
+  padding:7px 11px;
+  font-size:12px;
+  font-weight:1000;
+  margin-bottom:10px;
+  letter-spacing:.02em;
+}
+.ticket-actions{
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:10px!important;
+  flex-wrap:wrap!important;
+  margin-top:16px!important;
+}
+.ticket-action{
+  border:0;
+  border-radius:999px;
+  padding:11px 16px;
+  font-weight:1000;
+  cursor:pointer;
+}
+.ticket-action.primary{background:#61a8ff;color:#fff;box-shadow:0 12px 28px rgba(97,168,255,.30)}
+.ticket-action.secondary{background:#eef4ff;color:#235ea9}
+.ticket-action.danger{background:#ffe8e8;color:#b42318}
+.ticket-replies{
+  margin-top:18px!important;
+  border-top:1px solid #e6e8ed;
+  padding-top:16px;
+}
+.ticket-reply{
+  background:#f4f7fb!important;
+  border:1px solid #dfe7f2!important;
+  border-radius:18px!important;
+}
+body.dark-mode .ticket-toolbar input,
+body.dark-mode .ticket-toolbar select{
+  background:#07101f!important;
+  border-color:rgba(143,198,255,.18)!important;
+  color:#f8fbff!important;
+}
+body.dark-mode .pro-ticket{
+  background:linear-gradient(180deg,#101827,#0a1220)!important;
+  border-color:rgba(143,198,255,.16)!important;
+  color:#f8fbff!important;
+}
+body.dark-mode .pro-ticket p,
+body.dark-mode .ticket-head span{
+  color:#b9c8dc!important;
+}
+body.dark-mode .ticket-replies{
+  border-top-color:rgba(255,255,255,.10)!important;
+}
+body.dark-mode .ticket-reply{
+  background:#07101f!important;
+  border-color:rgba(143,198,255,.14)!important;
+}
+body.dark-mode .ticket-reply p{
+  color:#d7e3f4!important;
+}
+@media(max-width:760px){
+  .ticket-toolbar{grid-template-columns:1fr}
+  .ticket-actions{justify-content:flex-start!important}
+}

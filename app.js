@@ -1609,3 +1609,211 @@ if(originalRefreshUserUIV45){
     renderNotificationsV45();
   };
 }
+
+
+
+
+// V46 — Central de atendimento mais profissional: protocolo, busca, edição, encerramento e reabertura
+let editingTicketIdV46 = null;
+
+function generateTicketProtocolV46(){
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  const seq = String((supportTickets.length || 0) + 1).padStart(4,'0');
+  return `AM-${yyyy}${mm}${dd}-${seq}`;
+}
+function ticketMatchesSearchV46(ticket, query, status){
+  const q = String(query || '').trim().toLowerCase();
+  const statusOk = !status || status === 'all' || ticket.status === status;
+  if(!statusOk) return false;
+  if(!q) return true;
+  return [
+    ticket.protocol,
+    ticket.subject,
+    ticket.message,
+    ticket.name,
+    ticket.email,
+    ticket.status
+  ].join(' ').toLowerCase().includes(q);
+}
+function filteredTicketsV46(){
+  const q = document.getElementById('ticketSearchInput')?.value || '';
+  const status = document.getElementById('ticketStatusFilter')?.value || 'all';
+  return currentUserTickets().filter(t => ticketMatchesSearchV46(t, q, status));
+}
+function normalizeTicketsV46(){
+  let changed = false;
+  supportTickets = supportTickets.map((t, index) => {
+    if(!t.protocol){
+      changed = true;
+      const d = new Date(t.createdAt || Date.now());
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return {...t, protocol:`AM-${yyyy}${mm}${dd}-${String(index+1).padStart(4,'0')}`};
+    }
+    return t;
+  });
+  if(changed) saveSupportTickets();
+}
+const originalPublishSupportTicketV46 = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+if(originalPublishSupportTicketV46){
+  publishSupportTicket = function(){
+    if(!currentUser){ openAuth('login'); return; }
+    const subject = (document.getElementById('ticketSubject')?.value || '').trim();
+    const message = (document.getElementById('ticketMessage')?.value || '').trim();
+    if(!subject || !message) return toast('Preencha assunto e mensagem.');
+    const ticket = {
+      id: Date.now(),
+      protocol: generateTicketProtocolV46(),
+      owner: currentUserKey(),
+      name: currentUser.name || currentUser.username || 'Usuário',
+      email: currentUser.email || '',
+      subject,
+      message,
+      status:'Aberto',
+      replies:[],
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString()
+    };
+    supportTickets.push(ticket);
+    saveSupportTickets();
+    document.getElementById('ticketSubject').value = '';
+    document.getElementById('ticketMessage').value = '';
+    document.getElementById('supportTicketModal')?.classList.add('hidden');
+    renderClientArea();
+    toast(`Ticket aberto. Protocolo: ${ticket.protocol}`);
+    if(typeof pushNotificationV45 === 'function'){
+      pushNotificationV45({
+        role:'admin',
+        title:'Novo ticket aberto',
+        message:`${ticket.protocol} • ${ticket.name}: ${ticket.subject}`,
+        type:'ticket',
+        link:'client-area'
+      });
+    }
+  };
+}
+function ticketStatusClassV46(status){
+  return String(status || 'Aberto').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function canEditTicketV46(ticket){
+  if(!currentUser) return false;
+  if(currentUser.role === 'admin') return true;
+  return ticket.owner === currentUserKey() && ticket.status !== 'Encerrado';
+}
+window.editTicketV46 = function(id){
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket || !canEditTicketV46(ticket)) return toast('Você não pode editar este ticket.');
+  editingTicketIdV46 = id;
+  document.getElementById('editTicketSubject').value = ticket.subject || '';
+  document.getElementById('editTicketMessage').value = ticket.message || '';
+  document.getElementById('editTicketModal')?.classList.remove('hidden');
+};
+function saveTicketEditV46(){
+  const subject = (document.getElementById('editTicketSubject')?.value || '').trim();
+  const message = (document.getElementById('editTicketMessage')?.value || '').trim();
+  if(!subject || !message) return toast('Preencha assunto e mensagem.');
+  supportTickets = supportTickets.map(t => t.id === editingTicketIdV46 ? {...t, subject, message, updatedAt:new Date().toISOString()} : t);
+  saveSupportTickets();
+  document.getElementById('editTicketModal')?.classList.add('hidden');
+  renderClientArea();
+  toast('Ticket atualizado.');
+}
+window.closeTicketV46 = function(id){
+  if(!currentUser || currentUser.role !== 'admin') return toast('Apenas admin pode encerrar ticket.');
+  supportTickets = supportTickets.map(t => t.id === id ? {...t, status:'Encerrado', closedAt:new Date().toISOString(), updatedAt:new Date().toISOString()} : t);
+  saveSupportTickets();
+  renderClientArea();
+  toast('Ticket encerrado.');
+};
+window.reopenTicketV46 = function(id){
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket || !currentUser) return;
+  if(ticket.owner !== currentUserKey() && currentUser.role !== 'admin') return toast('Você não pode reabrir este ticket.');
+  supportTickets = supportTickets.map(t => t.id === id ? {...t, status:'Aberto', reopenedAt:new Date().toISOString(), updatedAt:new Date().toISOString()} : t);
+  saveSupportTickets();
+  renderClientArea();
+  toast('Ticket reaberto.');
+  if(typeof pushNotificationV45 === 'function'){
+    pushNotificationV45({
+      role:'admin',
+      title:'Ticket reaberto',
+      message:`${ticket.protocol || 'Sem protocolo'} • ${ticket.subject}`,
+      type:'ticket',
+      link:'client-area'
+    });
+  }
+};
+const originalSendAdminReplyV46 = typeof sendAdminReply === 'function' ? sendAdminReply : null;
+if(originalSendAdminReplyV46){
+  sendAdminReply = function(){
+    if(!currentUser || currentUser.role !== 'admin') return toast('Acesso restrito ao admin.');
+    const text = (document.getElementById('adminReplyText')?.value || '').trim();
+    if(!text) return toast('Digite a resposta.');
+    const ticket = supportTickets.find(t => t.id === replyingTicketId);
+    supportTickets = supportTickets.map(t => {
+      if(t.id !== replyingTicketId) return t;
+      const replies = Array.isArray(t.replies) ? t.replies : [];
+      return {...t, status:'Respondido', updatedAt:new Date().toISOString(), replies:[...replies, {by:'Admin', text, createdAt:new Date().toISOString()}]};
+    });
+    saveSupportTickets();
+    document.getElementById('adminReplyModal')?.classList.add('hidden');
+    renderClientArea();
+    toast('Resposta enviada ao cliente.');
+    if(ticket && typeof pushNotificationV45 === 'function'){
+      pushNotificationV45({
+        to: ticket.owner,
+        title:'Seu ticket foi respondido',
+        message:`${ticket.protocol || ''} • ${ticket.subject}`,
+        type:'ticket-reply',
+        link:'client-area'
+      });
+    }
+  };
+}
+const originalRenderSupportTicketsV46 = typeof renderSupportTickets === 'function' ? renderSupportTickets : null;
+if(originalRenderSupportTicketsV46){
+  renderSupportTickets = function(){
+    normalizeTicketsV46();
+    const list = document.getElementById('supportTicketsList');
+    if(!list) return;
+    const tickets = filteredTicketsV46();
+    if(!tickets.length){
+      list.innerHTML = '<div class="client-card"><p>Nenhum ticket encontrado.</p></div>';
+      return;
+    }
+    list.innerHTML = tickets.slice().reverse().map(t => {
+      const replies = (t.replies || []).map(r => `<div class="ticket-reply"><strong>${safeText(r.by)}</strong><span>${formatFeedDate(r.createdAt)}</span><p>${safeText(r.text)}</p></div>`).join('');
+      const admin = currentUser && currentUser.role === 'admin';
+      const canEdit = canEditTicketV46(t);
+      const editBtn = canEdit ? `<button class="ticket-action secondary" onclick="editTicketV46(${t.id})">Editar</button>` : '';
+      const replyBtn = admin && t.status !== 'Encerrado' ? `<button class="ticket-action primary" onclick="openAdminReply(${t.id})">Responder</button>` : '';
+      const closeBtn = admin && t.status !== 'Encerrado' ? `<button class="ticket-action danger" onclick="closeTicketV46(${t.id})">Encerrar</button>` : '';
+      const reopenBtn = t.status === 'Encerrado' && (!admin || admin) ? `<button class="ticket-action primary" onclick="reopenTicketV46(${t.id})">Reabrir</button>` : '';
+      return `<article class="ticket-card pro-ticket ${ticketStatusClassV46(t.status)}">
+        <div class="ticket-head">
+          <div>
+            <div class="ticket-protocol">${safeText(t.protocol || 'Sem protocolo')}</div>
+            <strong>${safeText(t.subject)}</strong>
+            <span>${safeText(t.name)} • ${formatFeedDate(t.createdAt)}</span>
+          </div>
+          <em>${safeText(t.status || 'Aberto')}</em>
+        </div>
+        <p>${safeText(t.message)}</p>
+        <div class="ticket-actions">${editBtn}${replyBtn}${closeBtn}${reopenBtn}</div>
+        <div class="ticket-replies">${replies}</div>
+      </article>`;
+    }).join('');
+  };
+}
+function bindTicketsV46(){
+  document.getElementById('ticketSearchInput')?.addEventListener('input', renderSupportTickets);
+  document.getElementById('ticketStatusFilter')?.addEventListener('change', renderSupportTickets);
+  document.getElementById('closeEditTicket')?.addEventListener('click', () => document.getElementById('editTicketModal')?.classList.add('hidden'));
+  document.getElementById('saveTicketEditBtn')?.addEventListener('click', saveTicketEditV46);
+  normalizeTicketsV46();
+}
+document.addEventListener('DOMContentLoaded', bindTicketsV46);
