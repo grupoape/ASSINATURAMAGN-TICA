@@ -90,7 +90,7 @@ function sendAdminEmail(data){
 
 async function loginWithGoogleV36(){
   if(!googleConfigReady()){
-    toast('Login Google adicionado. Configure as chaves Firebase no app.js para ativar o login real.');
+    toast('Login com Google ainda precisa ser ativado pelo administrador.');
     console.warn('V36 Google Login: preencha V36_GOOGLE_FIREBASE_CONFIG no app.js.');
     return;
   }
@@ -132,7 +132,7 @@ async function loginWithGoogleV36(){
     toast('Login com Google realizado com sucesso.');
   }catch(err){
     console.error(err);
-    toast('Não foi possível entrar com Google. Verifique a configuração Firebase.');
+    toast('Não foi possível entrar com Google agora.');
   }
 }
 window.loginWithGoogleV36 = loginWithGoogleV36;
@@ -575,56 +575,95 @@ function getPromptReactions(){
   try{return JSON.parse(localStorage.getItem(PROMPT_REACTIONS_KEY) || '{}')}catch(e){return {}}
 }
 function savePromptReactions(data){ localStorage.setItem(PROMPT_REACTIONS_KEY, JSON.stringify(data)); }
+
 function currentPromptUserKey(){
-  if(currentUser) return String(currentUser.id || currentUser.username || currentUser.email || currentUser.name || 'user');
-  let anon = localStorage.getItem('am_anon_prompt_user');
-  if(!anon){ anon = 'anon-' + Date.now() + '-' + Math.random().toString(16).slice(2); localStorage.setItem('am_anon_prompt_user', anon); }
-  return anon;
+  if(!currentUser) return null;
+  return String(currentUser.id || currentUser.username || currentUser.email || currentUser.name || 'user');
+}
+function normalizePromptItem(item){
+  item = item || {};
+  item.likes = Array.isArray(item.likes) ? item.likes : [];
+  item.dislikes = Array.isArray(item.dislikes) ? item.dislikes : [];
+  item.favorites = Array.isArray(item.favorites) ? item.favorites : [];
+  return item;
 }
 function updatePromptReactionUI(){
   const data = getPromptReactions();
+  const me = currentPromptUserKey();
   document.querySelectorAll('[data-prompt-id]').forEach(card => {
     const id = card.dataset.promptId;
-    const item = data[id] || {likes:[], dislikes:[]};
-    const me = currentPromptUserKey();
+    const item = normalizePromptItem(data[id]);
     const likeBtn = card.querySelector('[data-action="like"]');
     const dislikeBtn = card.querySelector('[data-action="dislike"]');
+    const favoriteBtn = card.querySelector('[data-action="favorite"]');
     if(likeBtn){
-      likeBtn.querySelector('b').textContent = (item.likes || []).length;
-      likeBtn.classList.toggle('active-like', (item.likes || []).includes(me));
+      likeBtn.querySelector('b').textContent = item.likes.length;
+      likeBtn.classList.toggle('active-like', !!me && item.likes.includes(me));
     }
     if(dislikeBtn){
-      dislikeBtn.querySelector('b').textContent = (item.dislikes || []).length;
-      dislikeBtn.classList.toggle('active-dislike', (item.dislikes || []).includes(me));
+      dislikeBtn.querySelector('b').textContent = item.dislikes.length;
+      dislikeBtn.classList.toggle('active-dislike', !!me && item.dislikes.includes(me));
     }
-    card.dataset.likes = (item.likes || []).length;
+    if(favoriteBtn){
+      favoriteBtn.querySelector('b').textContent = item.favorites.length;
+      favoriteBtn.classList.toggle('active-favorite', !!me && item.favorites.includes(me));
+    }
+    card.dataset.likes = item.likes.length;
+    card.dataset.favorites = item.favorites.length;
+    card.dataset.isFavorite = (!!me && item.favorites.includes(me)) ? 'yes' : 'no';
   });
 }
+function requirePromptLogin(actionName){
+  if(currentUser) return true;
+  openAuth('login');
+  toast(`Faça login para ${actionName}.`);
+  return false;
+}
 function reactPrompt(id, action){
+  if(action === 'like' && !requirePromptLogin('curtir prompts')) return;
+  if(action === 'dislike' && !requirePromptLogin('descurtir prompts')) return;
+  if(action === 'favorite' && !requirePromptLogin('favoritar prompts')) return;
   const data = getPromptReactions();
   const me = currentPromptUserKey();
-  const item = data[id] || {likes:[], dislikes:[]};
-  item.likes = Array.isArray(item.likes) ? item.likes : [];
-  item.dislikes = Array.isArray(item.dislikes) ? item.dislikes : [];
+  const item = normalizePromptItem(data[id]);
   if(action === 'like'){
     item.dislikes = item.dislikes.filter(x => x !== me);
     item.likes = item.likes.includes(me) ? item.likes.filter(x => x !== me) : [...item.likes, me];
-  } else {
+  } else if(action === 'dislike') {
     item.likes = item.likes.filter(x => x !== me);
     item.dislikes = item.dislikes.includes(me) ? item.dislikes.filter(x => x !== me) : [...item.dislikes, me];
+  } else if(action === 'favorite') {
+    item.favorites = item.favorites.includes(me) ? item.favorites.filter(x => x !== me) : [...item.favorites, me];
   }
   data[id] = item;
   savePromptReactions(data);
   updatePromptReactionUI();
 }
+function resetPromptVisibility(){
+  document.querySelectorAll('#prompts .cards.horizontal [data-prompt-id]').forEach(card => card.style.display = '');
+}
 function sortPromptsByLikes(){
   const grid = document.querySelector('#prompts .cards.horizontal');
   if(!grid) return;
+  resetPromptVisibility();
   updatePromptReactionUI();
   [...grid.querySelectorAll('[data-prompt-id]')]
     .sort((a,b) => Number(b.dataset.likes || 0) - Number(a.dataset.likes || 0))
     .forEach(card => grid.appendChild(card));
   toast('Prompts ordenados por mais curtidos.');
+}
+function filterFavoritePrompts(){
+  if(!currentUser){ openAuth('login'); return toast('Faça login para ver seus favoritos.'); }
+  const grid = document.querySelector('#prompts .cards.horizontal');
+  if(!grid) return;
+  updatePromptReactionUI();
+  let count = 0;
+  [...grid.querySelectorAll('[data-prompt-id]')].forEach(card => {
+    const show = card.dataset.isFavorite === 'yes';
+    card.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  toast(count ? 'Mostrando seus prompts favoritos.' : 'Você ainda não favoritou nenhum prompt.');
 }
 function setupPromptReactions(){
   document.querySelectorAll('[data-prompt-id] .prompt-reactions button').forEach(btn => {
@@ -636,24 +675,34 @@ function setupPromptReactions(){
     });
   });
   document.querySelectorAll('.filter-chip').forEach(btn => {
-    if(btn.textContent.trim().toLowerCase().includes('mais curtidos')){
+    const txt = btn.textContent.trim().toLowerCase();
+    if(txt.includes('mais curtidos')){
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
         sortPromptsByLikes();
       });
     }
-    if(btn.textContent.trim().toLowerCase().includes('mais recentes')){
+    if(txt.includes('mais recentes')){
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
+        resetPromptVisibility();
         const grid = document.querySelector('#prompts .cards.horizontal');
         if(grid){ [...grid.querySelectorAll('[data-prompt-id]')].sort((a,b)=>(a.dataset.promptId||'').localeCompare(b.dataset.promptId||'')).forEach(card=>grid.appendChild(card)); }
+      });
+    }
+    if(txt.includes('favoritos')){
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        filterFavoritePrompts();
       });
     }
   });
   updatePromptReactionUI();
 }
+
 function setupPlansV28(){
   const modal = document.querySelector("#vipPlansModal");
   const openPlans = (e) => {
@@ -699,7 +748,17 @@ function renderCommunityTopics(){
   const list = communityTopics.filter(t => currentCommunityFilter === 'all' || t.category === currentCommunityFilter);
   wrap.innerHTML = list.map(t => `<article class="topic-card" data-topic-id="${t.id}"><div class="topic-top"><div class="topic-avatar">${topicAvatarHTML(t)}</div><div class="topic-author"><strong>${t.name || 'Usuário'}</strong><span>${t.role || 'Membro'} • agora</span></div></div><span class="topic-tag">${categoryName(t.category)}</span><h4>${t.title}</h4><p>${t.desc}</p><div class="topic-stats"><button onclick="likeCommunityTopic(${t.id})">❤️ ${t.likes || 0}</button><span>💬 ${t.replies || 0} respostas</span><span>👁 ${t.views || 0} views</span></div></article>`).join('') || '<div class="community-empty"><strong>Nenhum debate publicado ainda.</strong><p>Quando um usuário logado criar um debate, ele aparecerá aqui.</p></div>';
 }
-window.likeCommunityTopic = (id) => { communityTopics = communityTopics.map(t => t.id === id ? {...t, likes:(t.likes||0)+1} : t); saveCommunityTopics(); renderCommunityTopics(); };
+window.likeCommunityTopic = (id) => {
+  if(!currentUser){ openAuth('login'); return toast('Faça login para curtir debates.'); }
+  const me = currentUserKey ? currentUserKey() : String(currentUser.id || currentUser.username || currentUser.email || currentUser.name);
+  communityTopics = communityTopics.map(t => {
+    if(t.id !== id) return t;
+    const likedBy = Array.isArray(t.likedBy) ? t.likedBy : [];
+    const next = likedBy.includes(me) ? likedBy.filter(x => x !== me) : [...likedBy, me];
+    return {...t, likedBy: next, likes: next.length};
+  });
+  saveCommunityTopics(); renderCommunityTopics();
+};
 function openTopicModal(){ if(!currentUser){ openAuth('login'); return toast('Para publicar na Comunidade Magnética, faça login primeiro.'); } document.getElementById('topicModal')?.classList.remove('hidden'); }
 function closeTopicModal(){ document.getElementById('topicModal')?.classList.add('hidden'); }
 function bindCommunity(){

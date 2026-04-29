@@ -73,6 +73,7 @@
         <button class="filter-chip">Mais curtidos</button>
         <button class="filter-chip">VIP</button>
         <button class="filter-chip">Free</button>
+        <button class="filter-chip" data-filter="favorites">Favoritos</button>
       </aside>
 
       <section class="content" id="prompts">
@@ -84,10 +85,10 @@
           <a href="#">Ver todos →</a>
         </div>
         <div class="cards horizontal">
-          <article class="prompt-card prompt-feature-card" id="featuredPromptCard" data-prompt-id="crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
-          <article class="prompt-card prompt-feature-card" id="celebrationPromptCard" data-prompt-id="celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
-          <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
-          <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button></div></article>
+          <article class="prompt-card prompt-feature-card" id="featuredPromptCard" data-prompt-id="crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          <article class="prompt-card prompt-feature-card" id="celebrationPromptCard" data-prompt-id="celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
         </div>
 
         <div class="section-head mt">
@@ -220,8 +221,6 @@
         <button class="btn primary full" type="submit">Entrar</button>
         <div class="auth-divider"><span>ou</span></div>
         <button id="googleLoginBtn" class="btn google full" type="button"><span class="google-g">G</span> Continuar com Google</button>
-        <p class="safe-note firebase-note">Login Google adicionado. Configure as chaves Firebase no app.js para ativar o login real.</p>
-        <p class="safe-note">Admin teste: usuário <strong>feeh</strong> ou e-mail <strong>fernandoalmeidacarvalhojr@gmail.com</strong></p>
       </form>
 
       <form id="registerForm" class="auth-form hidden">

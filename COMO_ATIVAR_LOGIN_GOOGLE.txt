@@ -1,0 +1,27 @@
+COMO ATIVAR O LOGIN COM GOOGLE NO GITHUB PAGES
+
+O botão Continuar com Google precisa do Firebase Authentication, porque o Google exige um projeto autorizado para liberar login real.
+
+PASSO A PASSO:
+
+1. Acesse https://console.firebase.google.com/
+2. Crie um projeto chamado Assinatura Magnetica.
+3. Entre em Authentication > Sign-in method.
+4. Ative Google como provedor de login.
+5. Vá em Project settings > General > Your apps.
+6. Crie um app Web.
+7. Copie o firebaseConfig gerado.
+8. Abra o arquivo app.js.
+9. Procure por firebaseConfig.
+10. Substitua os campos COLE_AQUI pelas suas chaves reais.
+11. Ainda no Firebase, vá em Authentication > Settings > Authorized domains.
+12. Adicione seu domínio do GitHub Pages, por exemplo: seuusuario.github.io
+13. Envie novamente os arquivos para o GitHub.
+
+IMPORTANTE:
+As chaves Firebase do app Web são públicas, não são senha. Elas identificam o projeto autorizado.
+
+ADMIN AUTOMÁTICO:
+No sistema atual, o usuário vira admin se entrar com:
+- usuário: feeh
+- e-mail: fernandoalmeidacarvalhojr@gmail.com
