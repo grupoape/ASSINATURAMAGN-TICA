@@ -1054,3 +1054,116 @@ body.dark-mode .ticket-reply p{
   .ticket-toolbar{grid-template-columns:1fr}
   .ticket-actions{justify-content:flex-start!important}
 }
+
+
+
+
+/* V47 — Editor tipo Gmail + Protocolos */
+.rich-editor{
+  border:1px solid #dfe3eb;
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.rich-toolbar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px;
+  border-bottom:1px solid #e6e8ed;
+  background:#f8fafc;
+  flex-wrap:wrap;
+}
+.rich-toolbar button,
+.rich-toolbar select,
+.rich-toolbar input[type="color"],
+.rich-image-btn{
+  height:34px;
+  border:1px solid #dfe3eb;
+  background:#fff;
+  border-radius:10px;
+  padding:0 10px;
+  font-weight:950;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.rich-toolbar select{min-width:112px}
+.rich-toolbar input[type="color"]{width:42px;padding:3px}
+.rich-content{
+  min-height:160px;
+  padding:16px;
+  outline:none;
+  color:#111318;
+  line-height:1.55;
+  font-size:15px;
+  background:#fff;
+}
+.rich-content:empty::before{
+  content:attr(data-placeholder);
+  color:#98a2b3;
+  pointer-events:none;
+}
+.rich-content img,
+.ticket-html img{
+  max-width:100%;
+  border-radius:14px;
+  margin:10px 0;
+  display:block;
+}
+.ticket-html{
+  color:#344054;
+  line-height:1.58;
+  margin:10px 0 14px;
+}
+.ticket-created-card{
+  text-align:center;
+}
+.created-protocol-number{
+  margin:20px auto;
+  background:#e7f1ff;
+  color:#235ea9;
+  border:1px solid rgba(97,168,255,.30);
+  border-radius:22px;
+  padding:18px;
+  font-size:28px;
+  font-weight:1000;
+  letter-spacing:.02em;
+}
+.protocol-history-list{
+  display:grid;
+  gap:16px;
+}
+.protocol-card .ticket-replies{
+  margin-top:20px!important;
+}
+body.dark-mode .rich-editor{
+  background:#07101f!important;
+  border-color:rgba(143,198,255,.18)!important;
+}
+body.dark-mode .rich-toolbar{
+  background:#0b1220!important;
+  border-bottom-color:rgba(255,255,255,.10)!important;
+}
+body.dark-mode .rich-toolbar button,
+body.dark-mode .rich-toolbar select,
+body.dark-mode .rich-toolbar input[type="color"],
+body.dark-mode .rich-image-btn{
+  background:#101827!important;
+  color:#f8fbff!important;
+  border-color:rgba(143,198,255,.18)!important;
+}
+body.dark-mode .rich-content{
+  background:#07101f!important;
+  color:#f8fbff!important;
+}
+body.dark-mode .ticket-html{
+  color:#d7e3f4!important;
+}
+body.dark-mode .created-protocol-number{
+  background:rgba(97,168,255,.16)!important;
+  color:#8fc6ff!important;
+  border-color:rgba(97,168,255,.24)!important;
+}

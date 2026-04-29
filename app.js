@@ -1817,3 +1817,262 @@ function bindTicketsV46(){
   normalizeTicketsV46();
 }
 document.addEventListener('DOMContentLoaded', bindTicketsV46);
+
+
+
+
+// V47 — Notificações limpam de verdade + protocolos + editor rico estilo Gmail
+function cleanHTMLV47(html){
+  return String(html || '').replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'');
+}
+function richTextPlainV47(html){
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  return (div.textContent || '').trim();
+}
+function getRichEditorHTMLV47(id){
+  const el = document.getElementById(id);
+  return cleanHTMLV47(el ? el.innerHTML.trim() : '');
+}
+function setRichEditorHTMLV47(id, html){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = html || '';
+}
+function syncRichHiddenV47(editorId, textareaId){
+  const ta = document.getElementById(textareaId);
+  if(ta) ta.value = getRichEditorHTMLV47(editorId);
+}
+function bindRichEditorsV47(){
+  document.querySelectorAll('.rich-toolbar button[data-cmd]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const editor = btn.closest('.rich-editor')?.dataset.target;
+      document.getElementById(editor)?.focus();
+      document.execCommand(btn.dataset.cmd, false, null);
+    });
+  });
+  document.querySelectorAll('.rich-toolbar select[data-cmd]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const editor = sel.closest('.rich-editor')?.dataset.target;
+      document.getElementById(editor)?.focus();
+      document.execCommand(sel.dataset.cmd, false, sel.value);
+    });
+  });
+  document.querySelectorAll('.rich-toolbar input[type="color"][data-cmd]').forEach(input => {
+    input.addEventListener('input', () => {
+      const editor = input.closest('.rich-editor')?.dataset.target;
+      document.getElementById(editor)?.focus();
+      document.execCommand(input.dataset.cmd, false, input.value);
+    });
+  });
+  document.querySelectorAll('.rich-toolbar input[type="file"][data-image]').forEach(input => {
+    input.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      const editorId = input.dataset.image;
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const editor = document.getElementById(editorId);
+        if(!editor) return;
+        editor.focus();
+        document.execCommand('insertHTML', false, `<img src="${reader.result}" alt="Imagem anexada">`);
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    });
+  });
+}
+const originalClearNotificationsV45 = typeof clearNotificationsV45 === 'function' ? clearNotificationsV45 : null;
+clearNotificationsV45 = function(){
+  const me = currentNotificationUserKey ? currentNotificationUserKey() : '';
+  const role = currentUser?.role || '';
+  amNotifications = amNotifications.filter(n => {
+    if(n.to === 'all') return false;
+    if(n.to === me) return false;
+    if(n.role && n.role === role) return false;
+    if(role === 'admin' && n.role === 'admin') return false;
+    return true;
+  });
+  saveNotificationsV45();
+  renderNotificationsV45();
+  toast('Notificações limpas.');
+};
+function showTicketCreatedV47(protocol){
+  const modal = document.getElementById('ticketCreatedModal');
+  const number = document.getElementById('createdProtocolNumber');
+  if(number) number.textContent = protocol;
+  modal?.classList.remove('hidden');
+}
+const originalPublishSupportTicketV47 = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+if(originalPublishSupportTicketV47){
+  publishSupportTicket = function(){
+    if(!currentUser){ openAuth('login'); return; }
+    syncRichHiddenV47('ticketMessageEditor','ticketMessage');
+    const subject = (document.getElementById('ticketSubject')?.value || '').trim();
+    const messageHTML = getRichEditorHTMLV47('ticketMessageEditor');
+    const messageText = richTextPlainV47(messageHTML);
+    if(!subject || !messageText) return toast('Preencha assunto e mensagem.');
+    const ticket = {
+      id: Date.now(),
+      protocol: generateTicketProtocolV46 ? generateTicketProtocolV46() : ('AM-' + Date.now()),
+      owner: currentUserKey(),
+      name: currentUser.name || currentUser.username || 'Usuário',
+      email: currentUser.email || '',
+      subject,
+      message: messageText,
+      messageHTML,
+      status:'Aberto',
+      replies:[],
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString()
+    };
+    supportTickets.push(ticket);
+    saveSupportTickets();
+    document.getElementById('ticketSubject').value = '';
+    setRichEditorHTMLV47('ticketMessageEditor','');
+    document.getElementById('ticketMessage').value = '';
+    document.getElementById('supportTicketModal')?.classList.add('hidden');
+    renderClientArea();
+    showTicketCreatedV47(ticket.protocol);
+    toast(`Ticket aberto. Protocolo: ${ticket.protocol}`);
+    if(typeof pushNotificationV45 === 'function'){
+      pushNotificationV45({
+        role:'admin',
+        title:'Novo ticket aberto',
+        message:`${ticket.protocol} • ${ticket.name}: ${ticket.subject}`,
+        type:'ticket',
+        link:'client-area'
+      });
+    }
+  };
+}
+const originalEditTicketV46 = window.editTicketV46;
+window.editTicketV46 = function(id){
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket || !canEditTicketV46(ticket)) return toast('Você não pode editar este ticket.');
+  editingTicketIdV46 = id;
+  document.getElementById('editTicketSubject').value = ticket.subject || '';
+  setRichEditorHTMLV47('editTicketEditor', ticket.messageHTML || safeText(ticket.message || ''));
+  document.getElementById('editTicketModal')?.classList.remove('hidden');
+};
+const originalSaveTicketEditV46 = typeof saveTicketEditV46 === 'function' ? saveTicketEditV46 : null;
+saveTicketEditV46 = function(){
+  const subject = (document.getElementById('editTicketSubject')?.value || '').trim();
+  const messageHTML = getRichEditorHTMLV47('editTicketEditor');
+  const messageText = richTextPlainV47(messageHTML);
+  if(!subject || !messageText) return toast('Preencha assunto e mensagem.');
+  supportTickets = supportTickets.map(t => t.id === editingTicketIdV46 ? {...t, subject, message:messageText, messageHTML, updatedAt:new Date().toISOString()} : t);
+  saveSupportTickets();
+  document.getElementById('editTicketModal')?.classList.add('hidden');
+  renderClientArea();
+  toast('Ticket atualizado.');
+};
+const originalOpenAdminReply = window.openAdminReply;
+window.openAdminReply = function(id){
+  replyingTicketId = id;
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket) return;
+  document.getElementById('adminReplyTicketInfo').textContent = `${ticket.protocol || ''} • ${ticket.name} — ${ticket.subject}`;
+  setRichEditorHTMLV47('adminReplyEditor','');
+  document.getElementById('adminReplyModal')?.classList.remove('hidden');
+};
+const originalSendAdminReplyV47 = typeof sendAdminReply === 'function' ? sendAdminReply : null;
+sendAdminReply = function(){
+  if(!currentUser || currentUser.role !== 'admin') return toast('Acesso restrito ao admin.');
+  const replyHTML = getRichEditorHTMLV47('adminReplyEditor');
+  const replyText = richTextPlainV47(replyHTML);
+  if(!replyText) return toast('Digite a resposta.');
+  const ticket = supportTickets.find(t => t.id === replyingTicketId);
+  supportTickets = supportTickets.map(t => {
+    if(t.id !== replyingTicketId) return t;
+    const replies = Array.isArray(t.replies) ? t.replies : [];
+    return {...t, status:'Respondido', updatedAt:new Date().toISOString(), replies:[...replies, {by:'Admin', text:replyText, html:replyHTML, createdAt:new Date().toISOString()}]};
+  });
+  saveSupportTickets();
+  document.getElementById('adminReplyModal')?.classList.add('hidden');
+  renderClientArea();
+  toast('Resposta enviada ao cliente.');
+  if(ticket && typeof pushNotificationV45 === 'function'){
+    pushNotificationV45({
+      to: ticket.owner,
+      title:'Seu ticket foi respondido',
+      message:`${ticket.protocol || ''} • ${ticket.subject}`,
+      type:'ticket-reply',
+      link:'client-area'
+    });
+  }
+};
+function renderProtocolHistoryV47(){
+  const list = document.getElementById('protocolHistoryList');
+  if(!list) return;
+  const q = (document.getElementById('protocolSearchInput')?.value || '').toLowerCase();
+  const status = document.getElementById('protocolStatusFilter')?.value || 'all';
+  const tickets = currentUserTickets().filter(t => ticketMatchesSearchV46 ? ticketMatchesSearchV46(t, q, status) : true);
+  if(!tickets.length){
+    list.innerHTML = '<div class="client-card"><p>Nenhum protocolo encontrado.</p></div>';
+    return;
+  }
+  list.innerHTML = tickets.slice().reverse().map(t => {
+    const replies = (t.replies || []).map(r => `<div class="ticket-reply"><strong>${safeText(r.by)}</strong><span>${formatFeedDate(r.createdAt)}</span><div class="ticket-html">${r.html || safeText(r.text)}</div></div>`).join('');
+    return `<article class="ticket-card pro-ticket protocol-card ${ticketStatusClassV46 ? ticketStatusClassV46(t.status) : ''}">
+      <div class="ticket-head">
+        <div>
+          <div class="ticket-protocol">${safeText(t.protocol || 'Sem protocolo')}</div>
+          <strong>${safeText(t.subject)}</strong>
+          <span>${safeText(t.name)} • ${formatFeedDate(t.createdAt)}</span>
+        </div>
+        <em>${safeText(t.status || 'Aberto')}</em>
+      </div>
+      <div class="ticket-html">${t.messageHTML || safeText(t.message)}</div>
+      <div class="ticket-replies">${replies}</div>
+    </article>`;
+  }).join('');
+}
+const originalRenderSupportTicketsV47 = typeof renderSupportTickets === 'function' ? renderSupportTickets : null;
+renderSupportTickets = function(){
+  if(originalRenderSupportTicketsV47) originalRenderSupportTicketsV47();
+  document.querySelectorAll('.pro-ticket').forEach(card => {
+    const p = card.querySelector(':scope > p');
+    if(!p) return;
+    const protocol = card.querySelector('.ticket-protocol')?.textContent || '';
+    const ticket = supportTickets.find(t => (t.protocol || '') === protocol.trim());
+    if(ticket && ticket.messageHTML){
+      const div = document.createElement('div');
+      div.className = 'ticket-html';
+      div.innerHTML = ticket.messageHTML;
+      p.replaceWith(div);
+    }
+    card.querySelectorAll('.ticket-reply').forEach(reply => {
+      const strong = reply.querySelector('strong');
+      const span = reply.querySelector('span');
+      const textP = reply.querySelector('p');
+      if(textP){
+        const txt = textP.textContent;
+        const ticketMatch = supportTickets.find(t => (t.replies || []).some(r => r.text === txt && r.html));
+        const rMatch = ticketMatch ? (ticketMatch.replies || []).find(r => r.text === txt && r.html) : null;
+        if(rMatch){
+          const html = document.createElement('div');
+          html.className = 'ticket-html';
+          html.innerHTML = rMatch.html;
+          textP.replaceWith(html);
+        }
+      }
+    });
+  });
+  renderProtocolHistoryV47();
+};
+function bindV47(){
+  bindRichEditorsV47();
+  document.getElementById('closeTicketCreated')?.addEventListener('click', () => document.getElementById('ticketCreatedModal')?.classList.add('hidden'));
+  document.getElementById('goToProtocolBtn')?.addEventListener('click', () => {
+    document.getElementById('ticketCreatedModal')?.classList.add('hidden');
+    document.querySelector('.client-nav[data-client-tab="protocols"]')?.click();
+  });
+  document.getElementById('protocolSearchInput')?.addEventListener('input', renderProtocolHistoryV47);
+  document.getElementById('protocolStatusFilter')?.addEventListener('change', renderProtocolHistoryV47);
+  const originalNavClick = document.querySelector('.client-nav[data-client-tab="protocols"]');
+  if(originalNavClick){
+    originalNavClick.addEventListener('click', renderProtocolHistoryV47);
+  }
+}
+document.addEventListener('DOMContentLoaded', bindV47);
