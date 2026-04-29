@@ -37,8 +37,20 @@
           <option value="es">Español</option>
         </select>
         <button id="darkModeBtn" class="btn theme-toggle" type="button" title="Ativar modo escuro">🌙</button>
-        <button id="loginBtn" class="btn ghost">Log in</button>
-        <button id="vipBtn" class="btn primary">Virar VIP</button>
+        <div class="account-menu-wrap">
+          <button id="accountMenuBtn" class="account-menu-btn" type="button" title="Conta">
+            <span id="accountAvatar" class="account-avatar">AM</span>
+            <span id="accountGreeting" class="account-greeting">Conta</span>
+            <span class="account-caret">▾</span>
+          </button>
+          <div id="accountDropdown" class="account-dropdown hidden">
+            <button id="loginBtn" type="button">Entrar / Login</button>
+            <button id="accountInfoBtn" type="button">Conta</button>
+            <button id="clientAreaBtn" type="button">Área do Cliente</button>
+            <button id="changePasswordBtn" type="button">Mudar senha</button>
+            <button id="logoutMenuBtn" type="button">Sair da conta</button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -221,6 +233,7 @@
         <button class="btn primary full" type="submit">Entrar</button>
         <div class="auth-divider"><span>ou</span></div>
         <button id="googleLoginBtn" class="btn google full" type="button"><span class="google-g">G</span> Continuar com Google</button>
+        <button id="forgotPasswordBtn" class="link-button full" type="button">Esqueceu a senha?</button>
       </form>
 
       <form id="registerForm" class="auth-form hidden">
@@ -231,6 +244,7 @@
         <input id="username" type="text" placeholder="Escolha um nome de usuário" required />
         <label>Senha</label>
         <input id="password" type="password" placeholder="Crie uma senha segura" required />
+        <p id="passwordRuleHint" class="password-hint">Use no mínimo 8 caracteres, 1 letra maiúscula e 1 símbolo. Ex: Nando@102030</p>
         <label>E-mail</label>
         <input id="email" type="email" placeholder="Digite seu e-mail" required />
         <label>Data de nascimento</label>
@@ -404,6 +418,123 @@
       <label>Descrição</label>
       <textarea id="topicDesc" placeholder="Escreva o contexto, peça feedback ou apresente seu trabalho..."></textarea>
       <button id="publishTopic" class="btn primary full">Publicar debate</button>
+    </div>
+  </div>
+
+  
+  <div id="changePasswordModal" class="modal hidden">
+    <div class="modal-card account-modal-card">
+      <button class="close" id="closeChangePassword">×</button>
+      <p class="eyebrow">Segurança</p>
+      <h2>Mudar senha</h2>
+      <p class="safe-note">Será enviado um e-mail com código de confirmação para validar a alteração.</p>
+      <label>E-mail da conta</label>
+      <input id="changePasswordEmail" type="email" placeholder="Digite seu e-mail" />
+      <button id="sendPasswordCodeBtn" class="btn primary full" type="button">Enviar código</button>
+      <div id="passwordCodeArea" class="hidden">
+        <label>Código recebido</label>
+        <input id="passwordCodeInput" type="text" placeholder="Digite o código" />
+        <label>Nova senha</label>
+        <input id="newPasswordInput" type="password" placeholder="Ex: Nando@102030" />
+        <p class="password-hint">Use no mínimo 8 caracteres, 1 letra maiúscula e 1 símbolo.</p>
+        <button id="confirmPasswordChangeBtn" class="btn primary full" type="button">Confirmar nova senha</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="forgotPasswordModal" class="modal hidden">
+    <div class="modal-card account-modal-card">
+      <button class="close" id="closeForgotPassword">×</button>
+      <p class="eyebrow">Recuperação</p>
+      <h2>Esqueceu a senha?</h2>
+      <p class="safe-note">Informe seu e-mail para solicitar a redefinição de senha.</p>
+      <label>E-mail cadastrado</label>
+      <input id="forgotPasswordEmail" type="email" placeholder="Digite seu e-mail" />
+      <button id="sendForgotPasswordBtn" class="btn primary full" type="button">Solicitar redefinição</button>
+    </div>
+  </div>
+
+  <section id="clientAreaPage" class="client-area-page hidden">
+    <div class="client-shell">
+      <aside class="client-sidebar">
+        <div class="client-logo">Área do Cliente</div>
+        <button class="client-nav active" data-client-tab="overview">🏠 Início</button>
+        <button class="client-nav" data-client-tab="services">🧾 Serviços e Faturas</button>
+        <button class="client-nav" data-client-tab="support">🎧 Support</button>
+        <button class="client-nav" data-client-tab="payments">💳 2ª via - Pagamentos</button>
+        <button class="client-nav" data-client-tab="base">📚 Menu Base</button>
+        <button id="backFromClientArea" class="client-back">← Voltar ao site</button>
+      </aside>
+      <main class="client-main">
+        <div class="client-top">
+          <div>
+            <p class="eyebrow" id="clientAreaEyebrow">Área do Cliente</p>
+            <h2 id="clientAreaTitle">Bem-vindo à sua central</h2>
+          </div>
+          <span id="clientAreaBadge" class="feed-pill">Cliente</span>
+        </div>
+
+        <section id="clientOverview" class="client-tab active">
+          <div class="client-hero">
+            <h3>Base - Qualidade acima de tudo.</h3>
+            <p>Acompanhe sua conta, suporte, respostas e informações da plataforma.</p>
+          </div>
+          <div class="client-grid">
+            <article class="client-card"><strong>Plano atual</strong><span id="clientPlanInfo">Free</span></article>
+            <article class="client-card"><strong>Status</strong><span>Ativo</span></article>
+            <article class="client-card"><strong>Suporte</strong><span id="clientTicketCount">0 tickets</span></article>
+          </div>
+        </section>
+
+        <section id="clientServices" class="client-tab">
+          <h3>Serviços e Faturas</h3>
+          <div class="client-card"><strong>Meus Produtos/Serviços</strong><p>Área preparada para listar assinaturas, produtos e serviços ativos.</p></div>
+          <div class="client-card"><strong>Minhas Faturas</strong><p>Área preparada para histórico financeiro e pagamentos.</p></div>
+        </section>
+
+        <section id="clientSupport" class="client-tab">
+          <div class="client-section-head">
+            <h3>Suporte</h3>
+            <button id="newSupportTicketBtn" class="btn primary" type="button">Abrir Ticket</button>
+          </div>
+          <div id="supportTicketsList" class="tickets-list"></div>
+        </section>
+
+        <section id="clientPayments" class="client-tab">
+          <h3>2ª via - Pagamentos</h3>
+          <div class="client-card"><p>Nenhuma fatura pendente no momento.</p></div>
+        </section>
+
+        <section id="clientBase" class="client-tab">
+          <h3>Menu Base</h3>
+          <div class="client-card"><p>Base de conhecimento e guia de conteúdos aparecerão aqui.</p></div>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <div id="supportTicketModal" class="modal hidden">
+    <div class="modal-card account-modal-card">
+      <button class="close" id="closeSupportTicket">×</button>
+      <p class="eyebrow">Support</p>
+      <h2>Abrir Ticket</h2>
+      <label>Assunto</label>
+      <input id="ticketSubject" type="text" placeholder="Digite o assunto" />
+      <label>Mensagem</label>
+      <textarea id="ticketMessage" placeholder="Explique sua solicitação..."></textarea>
+      <button id="publishTicketBtn" class="btn primary full" type="button">Enviar solicitação</button>
+    </div>
+  </div>
+
+  <div id="adminReplyModal" class="modal hidden">
+    <div class="modal-card account-modal-card">
+      <button class="close" id="closeAdminReply">×</button>
+      <p class="eyebrow">Admin</p>
+      <h2>Responder Ticket</h2>
+      <div id="adminReplyTicketInfo" class="safe-note"></div>
+      <label>Resposta</label>
+      <textarea id="adminReplyText" placeholder="Digite a resposta para o cliente..."></textarea>
+      <button id="sendAdminReplyBtn" class="btn primary full" type="button">Enviar resposta</button>
     </div>
   </div>
 

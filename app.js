@@ -144,7 +144,7 @@ window.loginWithGoogleV36 = loginWithGoogleV36;
 document.addEventListener('DOMContentLoaded', () => {
   promoteAdminAccounts();
   refreshUserUI();
-  $('#vipBtn').onclick = () => toast('Área VIP pronta para integração de pagamento.');
+  const oldVipBtn = $('#vipBtn'); if(oldVipBtn) oldVipBtn.onclick = () => toast('Área VIP pronta para integração de pagamento.');
   $('#closeModal').onclick = closeAuth;
   $('#authModal').addEventListener('click', e => { if(e.target.id === 'authModal') closeAuth(); });
   document.querySelectorAll('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
@@ -1170,4 +1170,285 @@ if(originalApplyLanguageV42){
 }
 document.addEventListener('DOMContentLoaded', () => {
   applyExtraTranslationsV42(localStorage.getItem('am_lang') || 'pt');
+});
+
+
+
+
+// V43 — Conta no topo + Área do Cliente/Admin + Suporte + Senha
+const SUPPORT_TICKETS_KEY = 'am_support_tickets_v43';
+let supportTickets = JSON.parse(localStorage.getItem(SUPPORT_TICKETS_KEY) || '[]');
+let pendingPasswordCode = null;
+let replyingTicketId = null;
+
+function saveSupportTickets(){
+  localStorage.setItem(SUPPORT_TICKETS_KEY, JSON.stringify(supportTickets));
+}
+function isValidSitePassword(password){
+  return typeof password === 'string'
+    && password.length >= 8
+    && /[A-ZÁÉÍÓÚÂÊÔÃÕÇ]/.test(password)
+    && /[^A-Za-z0-9]/.test(password);
+}
+function getUserEmail(){
+  return (currentUser && currentUser.email) ? currentUser.email : '';
+}
+function accountPhotoHTML(){
+  const photo = currentUser && currentUser.photo;
+  if(photo) return `<img src="${photo}" alt="Foto">`;
+  const initials = currentUser ? (currentUser.name || currentUser.username || 'AM').trim().slice(0,1).toUpperCase() : 'AM';
+  return initials || 'AM';
+}
+function refreshAccountMenuV43(){
+  const avatar = document.getElementById('accountAvatar');
+  const greet = document.getElementById('accountGreeting');
+  const loginBtn = document.getElementById('loginBtn');
+  const accountBtn = document.getElementById('accountInfoBtn');
+  const areaBtn = document.getElementById('clientAreaBtn');
+  const changeBtn = document.getElementById('changePasswordBtn');
+  const logoutBtn = document.getElementById('logoutMenuBtn');
+  if(avatar) avatar.innerHTML = accountPhotoHTML();
+  if(greet) greet.textContent = currentUser ? `Olá, ${currentUser.name || currentUser.username || 'Usuário'}!` : 'Conta';
+  if(loginBtn) loginBtn.style.display = currentUser ? 'none' : '';
+  if(accountBtn) accountBtn.style.display = currentUser ? '' : 'none';
+  if(areaBtn){
+    areaBtn.style.display = currentUser ? '' : 'none';
+    areaBtn.textContent = currentUser && currentUser.role === 'admin' ? 'Área do Administrador' : 'Área do Cliente';
+  }
+  if(changeBtn) changeBtn.style.display = currentUser ? '' : 'none';
+  if(logoutBtn) logoutBtn.style.display = currentUser ? '' : 'none';
+}
+const originalRefreshUserUIV43 = typeof refreshUserUI === 'function' ? refreshUserUI : null;
+if(originalRefreshUserUIV43){
+  refreshUserUI = function(){
+    originalRefreshUserUIV43();
+    refreshAccountMenuV43();
+  };
+}
+function closeAccountDropdown(){
+  document.getElementById('accountDropdown')?.classList.add('hidden');
+}
+function toggleAccountDropdown(){
+  document.getElementById('accountDropdown')?.classList.toggle('hidden');
+}
+function showAccountInfo(){
+  closeAccountDropdown();
+  if(!currentUser){ openAuth('login'); return; }
+  document.getElementById('profilePanel')?.classList.remove('hidden');
+}
+function openChangePasswordModal(){
+  closeAccountDropdown();
+  if(!currentUser){ openAuth('login'); return toast('Faça login para mudar a senha.'); }
+  const modal = document.getElementById('changePasswordModal');
+  const email = document.getElementById('changePasswordEmail');
+  const area = document.getElementById('passwordCodeArea');
+  if(email) email.value = currentUser.email || '';
+  if(area) area.classList.add('hidden');
+  modal?.classList.remove('hidden');
+}
+function openForgotPasswordModal(){
+  closeAuth();
+  const modal = document.getElementById('forgotPasswordModal');
+  const email = document.getElementById('forgotPasswordEmail');
+  const loginEmail = document.getElementById('loginUser')?.value || '';
+  if(email) email.value = loginEmail.includes('@') ? loginEmail : '';
+  modal?.classList.remove('hidden');
+}
+function sendMailtoPasswordCode(email, code){
+  const subject = encodeURIComponent('Código de confirmação - Assinatura Magnética');
+  const body = encodeURIComponent(`Olá!\n\nSeu código de confirmação para alterar a senha é: ${code}\n\nSe você não solicitou esta alteração, ignore esta mensagem.\n\nAssinatura Magnética`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+}
+function sendPasswordCode(){
+  const email = (document.getElementById('changePasswordEmail')?.value || '').trim();
+  if(!email) return toast('Digite o e-mail da conta.');
+  pendingPasswordCode = String(Math.floor(100000 + Math.random() * 900000));
+  localStorage.setItem('am_pending_password_code', pendingPasswordCode);
+  document.getElementById('passwordCodeArea')?.classList.remove('hidden');
+  toast('Código gerado. O e-mail será aberto para envio.');
+  setTimeout(()=>sendMailtoPasswordCode(email, pendingPasswordCode), 400);
+}
+function confirmPasswordChange(){
+  const code = (document.getElementById('passwordCodeInput')?.value || '').trim();
+  const newPass = document.getElementById('newPasswordInput')?.value || '';
+  const savedCode = pendingPasswordCode || localStorage.getItem('am_pending_password_code');
+  if(!savedCode || code !== savedCode) return toast('Código inválido.');
+  if(!isValidSitePassword(newPass)) return toast('Senha inválida: use mínimo 8 caracteres, 1 maiúscula e 1 símbolo.');
+  if(!currentUser) return toast('Faça login novamente.');
+  currentUser.password = newPass;
+  users = users.map(u => {
+    const same = (currentUser.id && u.id === currentUser.id) || (currentUser.email && u.email === currentUser.email) || (currentUser.username && u.username === currentUser.username);
+    return same ? {...u, password:newPass} : u;
+  });
+  saveUsers();
+  localStorage.setItem('am_user', JSON.stringify(currentUser));
+  localStorage.removeItem('am_pending_password_code');
+  pendingPasswordCode = null;
+  document.getElementById('changePasswordModal')?.classList.add('hidden');
+  toast('Senha alterada com sucesso.');
+}
+function requestForgotPassword(){
+  const email = (document.getElementById('forgotPasswordEmail')?.value || '').trim();
+  if(!email) return toast('Digite seu e-mail.');
+  const subject = encodeURIComponent('Solicitação de redefinição de senha - Assinatura Magnética');
+  const body = encodeURIComponent(`Olá, solicito a redefinição da senha da minha conta.\n\nE-mail cadastrado: ${email}\n\nAssinatura Magnética`);
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  toast('Solicitação de redefinição aberta no seu e-mail.');
+}
+function openClientArea(){
+  closeAccountDropdown();
+  if(!currentUser){ openAuth('login'); return toast('Faça login para acessar a área da conta.'); }
+  document.getElementById('normalContent')?.classList.add('feed-hidden');
+  document.getElementById('feedPage')?.classList.add('hidden');
+  document.getElementById('communityPage')?.classList.add('hidden');
+  const area = document.getElementById('clientAreaPage');
+  if(area) area.classList.remove('hidden');
+  renderClientArea();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function closeClientArea(){
+  document.getElementById('clientAreaPage')?.classList.add('hidden');
+  document.getElementById('normalContent')?.classList.remove('feed-hidden');
+  if(location.hash === '#feed' || location.hash === '#community') location.hash = '#home';
+}
+function currentUserTickets(){
+  if(!currentUser) return [];
+  if(currentUser.role === 'admin') return supportTickets;
+  const key = currentUserKey();
+  const email = (currentUser.email || '').toLowerCase();
+  return supportTickets.filter(t => t.owner === key || (email && String(t.email || '').toLowerCase() === email));
+}
+function renderClientArea(){
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const title = document.getElementById('clientAreaTitle');
+  const eyebrow = document.getElementById('clientAreaEyebrow');
+  const badge = document.getElementById('clientAreaBadge');
+  const plan = document.getElementById('clientPlanInfo');
+  if(eyebrow) eyebrow.textContent = isAdmin ? 'Área do Administrador' : 'Área do Cliente';
+  if(title) title.textContent = isAdmin ? 'Central administrativa' : 'Bem-vindo à sua central';
+  if(badge) badge.textContent = isAdmin ? 'Admin' : 'Cliente';
+  if(plan) plan.textContent = currentUser?.plan || 'Free';
+  const ticketCount = document.getElementById('clientTicketCount');
+  if(ticketCount) ticketCount.textContent = `${currentUserTickets().length} ticket${currentUserTickets().length===1?'':'s'}`;
+  renderSupportTickets();
+}
+function renderSupportTickets(){
+  const list = document.getElementById('supportTicketsList');
+  if(!list) return;
+  const tickets = currentUserTickets();
+  if(!tickets.length){
+    list.innerHTML = '<div class="client-card"><p>Nenhum ticket aberto ainda.</p></div>';
+    return;
+  }
+  list.innerHTML = tickets.slice().reverse().map(t => {
+    const replies = (t.replies || []).map(r => `<div class="ticket-reply"><strong>${safeText(r.by)}</strong><span>${formatFeedDate(r.createdAt)}</span><p>${safeText(r.text)}</p></div>`).join('');
+    const adminButton = currentUser && currentUser.role === 'admin' ? `<button class="btn primary" onclick="openAdminReply(${t.id})">Responder</button>` : '';
+    return `<article class="ticket-card">
+      <div class="ticket-head"><div><strong>${safeText(t.subject)}</strong><span>${safeText(t.name)} • ${formatFeedDate(t.createdAt)}</span></div><em>${safeText(t.status || 'Aberto')}</em></div>
+      <p>${safeText(t.message)}</p>
+      <div class="ticket-actions">${adminButton}</div>
+      <div class="ticket-replies">${replies}</div>
+    </article>`;
+  }).join('');
+}
+function openSupportTicketModal(){
+  if(!currentUser){ openAuth('login'); return toast('Faça login para abrir suporte.'); }
+  document.getElementById('supportTicketModal')?.classList.remove('hidden');
+}
+function publishSupportTicket(){
+  if(!currentUser){ openAuth('login'); return; }
+  const subject = (document.getElementById('ticketSubject')?.value || '').trim();
+  const message = (document.getElementById('ticketMessage')?.value || '').trim();
+  if(!subject || !message) return toast('Preencha assunto e mensagem.');
+  supportTickets.push({
+    id: Date.now(),
+    owner: currentUserKey(),
+    name: currentUser.name || currentUser.username || 'Usuário',
+    email: currentUser.email || '',
+    subject,
+    message,
+    status:'Aberto',
+    replies:[],
+    createdAt:new Date().toISOString()
+  });
+  saveSupportTickets();
+  document.getElementById('ticketSubject').value = '';
+  document.getElementById('ticketMessage').value = '';
+  document.getElementById('supportTicketModal')?.classList.add('hidden');
+  renderClientArea();
+  toast('Ticket enviado ao suporte.');
+}
+window.openAdminReply = function(id){
+  replyingTicketId = id;
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket) return;
+  document.getElementById('adminReplyTicketInfo').textContent = `${ticket.name} — ${ticket.subject}`;
+  document.getElementById('adminReplyText').value = '';
+  document.getElementById('adminReplyModal')?.classList.remove('hidden');
+};
+function sendAdminReply(){
+  if(!currentUser || currentUser.role !== 'admin') return toast('Acesso restrito ao admin.');
+  const text = (document.getElementById('adminReplyText')?.value || '').trim();
+  if(!text) return toast('Digite a resposta.');
+  supportTickets = supportTickets.map(t => {
+    if(t.id !== replyingTicketId) return t;
+    const replies = Array.isArray(t.replies) ? t.replies : [];
+    return {...t, status:'Respondido', replies:[...replies, {by:'Admin', text, createdAt:new Date().toISOString()}]};
+  });
+  saveSupportTickets();
+  document.getElementById('adminReplyModal')?.classList.add('hidden');
+  renderClientArea();
+  toast('Resposta enviada ao cliente.');
+}
+function bindAccountV43(){
+  refreshAccountMenuV43();
+  document.getElementById('accountMenuBtn')?.addEventListener('click', toggleAccountDropdown);
+  document.addEventListener('click', e => {
+    const wrap = document.querySelector('.account-menu-wrap');
+    if(wrap && !wrap.contains(e.target)) closeAccountDropdown();
+  });
+  document.getElementById('loginBtn')?.addEventListener('click', () => { closeAccountDropdown(); openAuth('login'); });
+  document.getElementById('accountInfoBtn')?.addEventListener('click', showAccountInfo);
+  document.getElementById('clientAreaBtn')?.addEventListener('click', openClientArea);
+  document.getElementById('changePasswordBtn')?.addEventListener('click', openChangePasswordModal);
+  document.getElementById('logoutMenuBtn')?.addEventListener('click', logoutCurrentUser);
+  document.getElementById('forgotPasswordBtn')?.addEventListener('click', openForgotPasswordModal);
+  document.getElementById('closeChangePassword')?.addEventListener('click', () => document.getElementById('changePasswordModal')?.classList.add('hidden'));
+  document.getElementById('sendPasswordCodeBtn')?.addEventListener('click', sendPasswordCode);
+  document.getElementById('confirmPasswordChangeBtn')?.addEventListener('click', confirmPasswordChange);
+  document.getElementById('closeForgotPassword')?.addEventListener('click', () => document.getElementById('forgotPasswordModal')?.classList.add('hidden'));
+  document.getElementById('sendForgotPasswordBtn')?.addEventListener('click', requestForgotPassword);
+  document.getElementById('backFromClientArea')?.addEventListener('click', closeClientArea);
+  document.querySelectorAll('.client-nav').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.client-nav').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.clientTab;
+      document.querySelectorAll('.client-tab').forEach(sec=>sec.classList.remove('active'));
+      const map = {overview:'clientOverview',services:'clientServices',support:'clientSupport',payments:'clientPayments',base:'clientBase'};
+      document.getElementById(map[tab])?.classList.add('active');
+      renderClientArea();
+    });
+  });
+  document.getElementById('newSupportTicketBtn')?.addEventListener('click', openSupportTicketModal);
+  document.getElementById('closeSupportTicket')?.addEventListener('click', () => document.getElementById('supportTicketModal')?.classList.add('hidden'));
+  document.getElementById('publishTicketBtn')?.addEventListener('click', publishSupportTicket);
+  document.getElementById('closeAdminReply')?.addEventListener('click', () => document.getElementById('adminReplyModal')?.classList.add('hidden'));
+  document.getElementById('sendAdminReplyBtn')?.addEventListener('click', sendAdminReply);
+}
+document.addEventListener('DOMContentLoaded', bindAccountV43);
+
+// reforço de validação de senha no cadastro
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('registerForm');
+  if(!form) return;
+  form.addEventListener('submit', e => {
+    const pass = document.getElementById('password')?.value || '';
+    if(!isValidSitePassword(pass)){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toast('Senha inválida: use mínimo 8 caracteres, 1 letra maiúscula e 1 símbolo.');
+      return false;
+    }
+  }, true);
 });
