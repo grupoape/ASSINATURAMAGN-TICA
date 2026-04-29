@@ -10,7 +10,10 @@ const V36_GOOGLE_FIREBASE_CONFIG = {
   apiKey: "AIzaSyAoxqHA0D-xhbmMxS12fjgJROiE3aBTqT0",
   authDomain: "assinatura-magnetica.firebaseapp.com",
   projectId: "assinatura-magnetica",
-  appId: "1:519915223614:web:ae78373ecf6dc910316f6f"
+  storageBucket: "assinatura-magnetica.firebasestorage.app",
+  messagingSenderId: "519915223614",
+  appId: "1:519915223614:web:ae78373ecf6dc910316f6f",
+  measurementId: "G-FX33RKFSZC"
 };
 function googleConfigReady(){
   return !!(V36_GOOGLE_FIREBASE_CONFIG.apiKey && V36_GOOGLE_FIREBASE_CONFIG.authDomain && V36_GOOGLE_FIREBASE_CONFIG.projectId && V36_GOOGLE_FIREBASE_CONFIG.appId);
@@ -980,4 +983,191 @@ function toggleDarkMode(){
 document.addEventListener('DOMContentLoaded', () => {
   applyDarkModePreference();
   document.querySelector('#darkModeBtn')?.addEventListener('click', toggleDarkMode);
+});
+
+
+
+// V42: tradução ampliada dos textos fixos dos cards, popups, comunidade e prompts
+const AM_EXTRA_I18N_V42 = {
+  pt: {
+    prompt1Title:'Crie essa imagem',
+    prompt1Desc:'Prompt editorial hiper-realista para imagem premium.',
+    prompt2Title:'Super Pack Celebração',
+    prompt2Desc:'Prompt comemorativo editorial hiper-realista.',
+    colorTitle:'Color Grading',
+    colorDesc:'Paletas e direção de arte profissional.',
+    socialTitle:'Social Pack',
+    socialDesc:'Posts, reels e carrosséis prontos.',
+    brandTitle:'Brand Builder',
+    brandDesc:'Crie identidade visual em minutos.',
+    minimalTitle:'Minimal AI Portrait',
+    minimalDesc:'Prompt para retrato realista editorial.',
+    mentoriaTitle:'Mentoria Magnética',
+    mentoriaDesc:'Conteúdo premium para transformar presença em influência.',
+    standTitle:'Stands VIP',
+    standDesc:'Vitrine exclusiva para vender produtos digitais e criativos.',
+    premiumPromptTitle:'Prompts premium',
+    premiumPromptDesc:'Venda prompts prontos, packs de imagem e bibliotecas de criação.',
+    founderTitle:'Mentoria Magnética',
+    founderDesc:'Espaço para assinatura, aulas e produtos do fundador.',
+    noDebates:'Nenhum debate publicado ainda.',
+    noDebatesDesc:'Quando um usuário logado criar um debate, ele aparecerá aqui.',
+    newDebate:'+ Novo Debate',
+    communityHeroTitle:'Portfólio, diálogo e oportunidade no mesmo lugar',
+    communityHeroDesc:'Mostre seus trabalhos, compartilhe prompts, peça feedback, encontre parceiros e transforme conversas em autoridade.',
+    discussions:'Discussões em destaque',
+    forumPremium:'Fórum premium',
+    favorites:'Favoritos',
+    like:'Curtir',
+    dislike:'Descurtir',
+    favorite:'Favoritar'
+  },
+  en: {
+    prompt1Title:'Create this image',
+    prompt1Desc:'Hyper-realistic editorial prompt for a premium image.',
+    prompt2Title:'Celebration Super Pack',
+    prompt2Desc:'Hyper-realistic editorial commemorative prompt.',
+    colorTitle:'Color Grading',
+    colorDesc:'Professional palettes and art direction.',
+    socialTitle:'Social Pack',
+    socialDesc:'Ready-made posts, reels and carousels.',
+    brandTitle:'Brand Builder',
+    brandDesc:'Create a visual identity in minutes.',
+    minimalTitle:'Minimal AI Portrait',
+    minimalDesc:'Prompt for realistic editorial portraits.',
+    mentoriaTitle:'Magnetic Mentorship',
+    mentoriaDesc:'Premium content to transform presence into influence.',
+    standTitle:'VIP Stands',
+    standDesc:'Exclusive storefront to sell digital and creative products.',
+    premiumPromptTitle:'Premium prompts',
+    premiumPromptDesc:'Sell ready-made prompts, image packs and creation libraries.',
+    founderTitle:'Magnetic Mentorship',
+    founderDesc:'Space for subscriptions, classes and founder products.',
+    noDebates:'No debates published yet.',
+    noDebatesDesc:'When a logged-in user creates a debate, it will appear here.',
+    newDebate:'+ New Debate',
+    communityHeroTitle:'Portfolio, dialogue and opportunity in one place',
+    communityHeroDesc:'Show your work, share prompts, ask for feedback, find partners and turn conversations into authority.',
+    discussions:'Featured discussions',
+    forumPremium:'Premium forum',
+    favorites:'Favorites',
+    like:'Like',
+    dislike:'Dislike',
+    favorite:'Favorite'
+  },
+  es: {
+    prompt1Title:'Crea esta imagen',
+    prompt1Desc:'Prompt editorial hiperrealista para una imagen premium.',
+    prompt2Title:'Super Pack Celebración',
+    prompt2Desc:'Prompt conmemorativo editorial hiperrealista.',
+    colorTitle:'Color Grading',
+    colorDesc:'Paletas y dirección de arte profesional.',
+    socialTitle:'Social Pack',
+    socialDesc:'Posts, reels y carruseles listos.',
+    brandTitle:'Brand Builder',
+    brandDesc:'Crea identidad visual en minutos.',
+    minimalTitle:'Retrato IA Minimalista',
+    minimalDesc:'Prompt para retrato editorial realista.',
+    mentoriaTitle:'Mentoría Magnética',
+    mentoriaDesc:'Contenido premium para transformar presencia en influencia.',
+    standTitle:'Stands VIP',
+    standDesc:'Vitrina exclusiva para vender productos digitales y creativos.',
+    premiumPromptTitle:'Prompts premium',
+    premiumPromptDesc:'Vende prompts listos, packs de imagen y bibliotecas creativas.',
+    founderTitle:'Mentoría Magnética',
+    founderDesc:'Espacio para suscripción, clases y productos del fundador.',
+    noDebates:'Aún no hay debates publicados.',
+    noDebatesDesc:'Cuando un usuario conectado cree un debate, aparecerá aquí.',
+    newDebate:'+ Nuevo Debate',
+    communityHeroTitle:'Portafolio, diálogo y oportunidad en un solo lugar',
+    communityHeroDesc:'Muestra tus trabajos, comparte prompts, pide feedback, encuentra socios y transforma conversaciones en autoridad.',
+    discussions:'Discusiones destacadas',
+    forumPremium:'Foro premium',
+    favorites:'Favoritos',
+    like:'Me gusta',
+    dislike:'No me gusta',
+    favorite:'Favorito'
+  },
+  hi: {
+    prompt1Title:'यह इमेज बनाएं',
+    prompt1Desc:'प्रीमियम इमेज के लिए हाइपर-रियलिस्टिक एडिटोरियल प्रॉम्प्ट।',
+    prompt2Title:'सेलिब्रेशन सुपर पैक',
+    prompt2Desc:'हाइपर-रियलिस्टिक एडिटोरियल सेलिब्रेशन प्रॉम्प्ट।',
+    colorTitle:'कलर ग्रेडिंग',
+    colorDesc:'प्रोफेशनल पैलेट और आर्ट डायरेक्शन।',
+    socialTitle:'सोशल पैक',
+    socialDesc:'तैयार पोस्ट, रील्स और कैरोसेल।',
+    brandTitle:'ब्रांड बिल्डर',
+    brandDesc:'मिनटों में विज़ुअल आइडेंटिटी बनाएं।',
+    minimalTitle:'मिनिमल AI पोर्ट्रेट',
+    minimalDesc:'रियलिस्टिक एडिटोरियल पोर्ट्रेट के लिए प्रॉम्प्ट।',
+    mentoriaTitle:'मैग्नेटिक मेंटरशिप',
+    mentoriaDesc:'प्रेज़ेंस को इन्फ्लुएंस में बदलने के लिए प्रीमियम कंटेंट।',
+    standTitle:'VIP स्टैंड्स',
+    standDesc:'डिजिटल और क्रिएटिव प्रोडक्ट बेचने के लिए एक्सक्लूसिव विंडो।',
+    premiumPromptTitle:'प्रीमियम प्रॉम्प्ट्स',
+    premiumPromptDesc:'तैयार प्रॉम्प्ट्स, इमेज पैक्स और क्रिएशन लाइब्रेरी बेचें।',
+    founderTitle:'मैग्नेटिक मेंटरशिप',
+    founderDesc:'सब्सक्रिप्शन, क्लासेस और फाउंडर प्रोडक्ट्स के लिए जगह।',
+    noDebates:'अभी कोई डिबेट प्रकाशित नहीं हुई।',
+    noDebatesDesc:'लॉगिन यूज़र जब डिबेट बनाएगा, वह यहाँ दिखेगी।',
+    newDebate:'+ नई डिबेट',
+    communityHeroTitle:'पोर्टफोलियो, संवाद और अवसर एक ही जगह',
+    communityHeroDesc:'अपना काम दिखाएं, प्रॉम्प्ट साझा करें, फीडबैक लें, पार्टनर खोजें और संवाद को अथॉरिटी में बदलें।',
+    discussions:'प्रमुख चर्चाएँ',
+    forumPremium:'प्रीमियम फोरम',
+    favorites:'फेवरिट्स',
+    like:'लाइक',
+    dislike:'डिस्लाइक',
+    favorite:'फेवरिट'
+  }
+};
+function applyExtraTranslationsV42(lang){
+  const e = AM_EXTRA_I18N_V42[lang] || AM_EXTRA_I18N_V42.pt;
+  const byId = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  const setCard = (sel, title, desc) => {
+    const card = document.querySelector(sel);
+    if(card){
+      const h = card.querySelector('h3'); const p = card.querySelector('p');
+      if(h) h.textContent = title;
+      if(p) p.textContent = desc;
+    }
+  };
+  setCard('#featuredPromptCard', e.prompt1Title, e.prompt1Desc);
+  setCard('#celebrationPromptCard', e.prompt2Title, e.prompt2Desc);
+  setCard('[data-prompt-id="color-grading"]', e.colorTitle, e.colorDesc);
+  setCard('[data-prompt-id="social-pack"]', e.socialTitle, e.socialDesc);
+  setCard('.img2', e.brandTitle, e.brandDesc);
+  const creations = document.querySelectorAll('.creation');
+  if(creations[1]){ const h=creations[1].querySelector('h3'); const p=creations[1].querySelector('p'); if(h)h.textContent=e.minimalTitle; if(p)p.textContent=e.minimalDesc; }
+  if(creations[2]){ const h=creations[2].querySelector('h3'); const p=creations[2].querySelector('p'); if(h)h.textContent=e.mentoriaTitle; if(p)p.textContent=e.mentoriaDesc; }
+  const markets = document.querySelectorAll('.market-card');
+  [[e.standTitle,e.standDesc],[e.premiumPromptTitle,e.premiumPromptDesc],[e.founderTitle,e.founderDesc]].forEach((pair,i)=>{
+    if(markets[i]){ const s=markets[i].querySelector('strong'); const p=markets[i].querySelector('p'); if(s)s.textContent=pair[0]; if(p)p.textContent=pair[1]; }
+  });
+  const favBtn = [...document.querySelectorAll('.filter-chip')].find(b => /favoritos|favorites|फेवरिट्स/i.test(b.textContent));
+  if(favBtn) favBtn.textContent = e.favorites;
+  document.querySelectorAll('.prompt-like').forEach(btn=>{ const b=btn.querySelector('b'); btn.childNodes[0].textContent = '👍 '; if(btn.childNodes[1]){} });
+  document.querySelectorAll('.prompt-dislike').forEach(btn=>{ btn.childNodes[0].textContent = '👎 '; });
+  document.querySelectorAll('.prompt-favorite').forEach(btn=>{ btn.childNodes[0].textContent = '☆ '; });
+  const heroTitle = document.querySelector('.community-hero-card h2'); if(heroTitle) heroTitle.textContent = e.communityHeroTitle;
+  const heroDesc = document.querySelector('.community-hero-card p:not(.eyebrow)'); if(heroDesc) heroDesc.textContent = e.communityHeroDesc;
+  const newBtn = document.querySelector('#newTopicBtn'); if(newBtn) newBtn.textContent = e.newDebate;
+  const commHead = document.querySelector('.community-section-head h3'); if(commHead) commHead.textContent = e.discussions;
+  const forumPill = document.querySelector('.community-section-head .feed-pill'); if(forumPill) forumPill.textContent = e.forumPremium;
+  document.querySelectorAll('.community-empty').forEach(empty=>{
+    const strong = empty.querySelector('strong'); const p = empty.querySelector('p');
+    if(strong) strong.textContent = e.noDebates;
+    if(p) p.textContent = e.noDebatesDesc;
+  });
+}
+const originalApplyLanguageV42 = typeof applyLanguage === 'function' ? applyLanguage : null;
+if(originalApplyLanguageV42){
+  applyLanguage = function(lang){
+    originalApplyLanguageV42(lang);
+    applyExtraTranslationsV42(lang);
+  };
+}
+document.addEventListener('DOMContentLoaded', () => {
+  applyExtraTranslationsV42(localStorage.getItem('am_lang') || 'pt');
 });
