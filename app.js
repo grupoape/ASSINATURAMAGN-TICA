@@ -2076,3 +2076,100 @@ function bindV47(){
   }
 }
 document.addEventListener('DOMContentLoaded', bindV47);
+
+
+
+
+// V48 — Tickets encerrados saem do Suporte e ficam apenas em Protocolos
+function supportActiveTicketsV48(){
+  const q = document.getElementById('ticketSearchInput')?.value || '';
+  const status = document.getElementById('ticketStatusFilter')?.value || 'all';
+  return currentUserTickets()
+    .filter(t => t.status !== 'Encerrado')
+    .filter(t => ticketMatchesSearchV46 ? ticketMatchesSearchV46(t, q, status) : true);
+}
+function renderSupportTicketsActiveOnlyV48(){
+  normalizeTicketsV46 && normalizeTicketsV46();
+  const list = document.getElementById('supportTicketsList');
+  if(!list) return;
+  const tickets = supportActiveTicketsV48();
+  if(!tickets.length){
+    list.innerHTML = '<div class="client-card"><p>Nenhum atendimento em aberto no suporte. Atendimentos encerrados ficam no menu Protocolos.</p></div>';
+    if(typeof renderProtocolHistoryV47 === 'function') renderProtocolHistoryV47();
+    return;
+  }
+  list.innerHTML = tickets.slice().reverse().map(t => {
+    const replies = (t.replies || []).map(r => `<div class="ticket-reply"><strong>${safeText(r.by)}</strong><span>${formatFeedDate(r.createdAt)}</span><div class="ticket-html">${r.html || safeText(r.text)}</div></div>`).join('');
+    const admin = currentUser && currentUser.role === 'admin';
+    const canEdit = canEditTicketV46(t);
+    const editBtn = canEdit ? `<button class="ticket-action secondary" onclick="editTicketV46(${t.id})">Editar</button>` : '';
+    const replyBtn = admin ? `<button class="ticket-action primary" onclick="openAdminReply(${t.id})">Responder</button>` : '';
+    const closeBtn = admin ? `<button class="ticket-action danger" onclick="closeTicketV46(${t.id})">Encerrar</button>` : '';
+    return `<article class="ticket-card pro-ticket ${ticketStatusClassV46 ? ticketStatusClassV46(t.status) : ''}">
+      <div class="ticket-head">
+        <div>
+          <div class="ticket-protocol">${safeText(t.protocol || 'Sem protocolo')}</div>
+          <strong>${safeText(t.subject)}</strong>
+          <span>${safeText(t.name)} • ${formatFeedDate(t.createdAt)}</span>
+        </div>
+        <em>${safeText(t.status || 'Aberto')}</em>
+      </div>
+      <div class="ticket-html">${t.messageHTML || safeText(t.message)}</div>
+      <div class="ticket-actions">${editBtn}${replyBtn}${closeBtn}</div>
+      <div class="ticket-replies">${replies}</div>
+    </article>`;
+  }).join('');
+  if(typeof renderProtocolHistoryV47 === 'function') renderProtocolHistoryV47();
+}
+renderSupportTickets = renderSupportTicketsActiveOnlyV48;
+
+const originalCloseTicketV46ForV48 = window.closeTicketV46;
+window.closeTicketV46 = function(id){
+  if(!currentUser || currentUser.role !== 'admin') return toast('Apenas admin pode encerrar ticket.');
+  const ticket = supportTickets.find(t => t.id === id);
+  supportTickets = supportTickets.map(t => t.id === id ? {
+    ...t,
+    status:'Encerrado',
+    closedAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  } : t);
+  saveSupportTickets();
+  renderClientArea();
+  if(typeof renderProtocolHistoryV47 === 'function') renderProtocolHistoryV47();
+  toast('Atendimento encerrado. O histórico foi movido para Protocolos.');
+  if(ticket && typeof pushNotificationV45 === 'function'){
+    pushNotificationV45({
+      to: ticket.owner,
+      title:'Atendimento encerrado',
+      message:`${ticket.protocol || ''} • ${ticket.subject}`,
+      type:'ticket-closed',
+      link:'client-area'
+    });
+  }
+};
+
+const originalReopenTicketV46ForV48 = window.reopenTicketV46;
+window.reopenTicketV46 = function(id){
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket || !currentUser) return;
+  if(ticket.owner !== currentUserKey() && currentUser.role !== 'admin') return toast('Você não pode reabrir este ticket.');
+  supportTickets = supportTickets.map(t => t.id === id ? {
+    ...t,
+    status:'Aberto',
+    reopenedAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  } : t);
+  saveSupportTickets();
+  renderClientArea();
+  if(typeof renderProtocolHistoryV47 === 'function') renderProtocolHistoryV47();
+  toast('Ticket reaberto. Ele voltou para a área de Suporte.');
+  if(typeof pushNotificationV45 === 'function'){
+    pushNotificationV45({
+      role:'admin',
+      title:'Ticket reaberto',
+      message:`${ticket.protocol || 'Sem protocolo'} • ${ticket.subject}`,
+      type:'ticket',
+      link:'client-area'
+    });
+  }
+};
