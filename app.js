@@ -7,10 +7,10 @@ const ADMIN_EMAIL = "fernandoalmeidacarvalhojr@gmail.com";
 // 3) Adicione seu domínio autorizado
 // 4) Substitua os valores abaixo pelas chaves do seu app Web Firebase.
 const V36_GOOGLE_FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  appId: ""
+  apiKey: "AIzaSyAoxqHA0D-xhbmMxS12fjgJROiE3aBTqT0",
+  authDomain: "assinatura-magnetica.firebaseapp.com",
+  projectId: "assinatura-magnetica",
+  appId: "1:519915223614:web:ae78373ecf6dc910316f6f"
 };
 function googleConfigReady(){
   return !!(V36_GOOGLE_FIREBASE_CONFIG.apiKey && V36_GOOGLE_FIREBASE_CONFIG.authDomain && V36_GOOGLE_FIREBASE_CONFIG.projectId && V36_GOOGLE_FIREBASE_CONFIG.appId);
