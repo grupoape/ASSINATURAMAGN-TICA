@@ -901,3 +901,24 @@ function initLanguageSystem(){
   applyLanguage(saved);
 }
 document.addEventListener('DOMContentLoaded', initLanguageSystem);
+
+// V37: modo escuro com preferência salva
+function applyDarkModePreference(){
+  const enabled = localStorage.getItem('am_dark_mode') === 'yes';
+  document.body.classList.toggle('dark-mode', enabled);
+  const btn = document.querySelector('#darkModeBtn');
+  if(btn){
+    btn.textContent = enabled ? '☀️' : '🌙';
+    btn.title = enabled ? 'Desativar modo escuro' : 'Ativar modo escuro';
+  }
+}
+function toggleDarkMode(){
+  const enabled = !(localStorage.getItem('am_dark_mode') === 'yes');
+  localStorage.setItem('am_dark_mode', enabled ? 'yes' : 'no');
+  applyDarkModePreference();
+  toast(enabled ? 'Modo escuro ativado.' : 'Modo claro ativado.');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  applyDarkModePreference();
+  document.querySelector('#darkModeBtn')?.addEventListener('click', toggleDarkMode);
+});
