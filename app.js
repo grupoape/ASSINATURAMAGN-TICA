@@ -2520,3 +2520,612 @@ if(originalRenderClientAreaV52){
     removeProtocolsMenuForEveryoneV52();
   };
 }
+
+
+
+
+// V53 EXPRESS — FREE/VIP filters + prompt VIP + PIX 24h local access
+const AM_V53_VIP_ACCESS_KEY = 'am_v53_vip_prompt_access_until';
+const AM_V53_VIP_PROMPT_ID = 'pika-vip';
+
+function v53IsLogged(){
+  return !!currentUser;
+}
+function v53IsVipUser(){
+  return !!(currentUser && (currentUser.role === 'admin' || currentUser.plan === 'VIP' || currentUser.plan === 'Creator'));
+}
+function v53VipAccessUntil(){
+  return Number(localStorage.getItem(AM_V53_VIP_ACCESS_KEY) || '0');
+}
+function v53HasVipPromptAccess(){
+  return v53IsVipUser() || Date.now() < v53VipAccessUntil();
+}
+function v53FormatRemaining(ms){
+  if(ms <= 0) return '0h 0min';
+  const hours = Math.floor(ms / 3600000);
+  const minutes = Math.floor((ms % 3600000) / 60000);
+  return `${hours}h ${minutes}min`;
+}
+function v53UpdateVipAccessUI(){
+  const note = document.getElementById('vipPromptAccessNote');
+  const buy = document.getElementById('buyVipPromptBtn');
+  const copy = document.getElementById('copyVipPromptBtn');
+  if(!note || !buy || !copy) return;
+  if(v53IsVipUser()){
+    note.textContent = 'Acesso liberado pelo seu plano VIP/Creator.';
+    buy.classList.add('hidden');
+    copy.classList.remove('hidden');
+    return;
+  }
+  const remaining = v53VipAccessUntil() - Date.now();
+  if(remaining > 0){
+    note.textContent = `Acesso avulso liberado. Tempo restante: ${v53FormatRemaining(remaining)}.`;
+    buy.classList.add('hidden');
+    copy.classList.remove('hidden');
+  } else {
+    note.textContent = 'Acesso exclusivo VIP/Creator ou compra avulsa por R$10,00 com liberação por 24h.';
+    buy.classList.remove('hidden');
+    copy.classList.add('hidden');
+  }
+}
+function v53OpenVipPrompt(){
+  const modal = document.getElementById('vipPromptModal');
+  if(!modal) return;
+  modal.classList.remove('hidden');
+  v53UpdateVipAccessUI();
+}
+function v53OpenPix(){
+  if(!v53IsLogged()){
+    openAuth('login');
+    return toast('Faça login para comprar este prompt.');
+  }
+  document.getElementById('pixPromptModal')?.classList.remove('hidden');
+}
+function v53ConfirmPixAccess(){
+  if(!v53IsLogged()){
+    openAuth('login');
+    return toast('Faça login para liberar o acesso.');
+  }
+  const until = Date.now() + (24 * 60 * 60 * 1000);
+  localStorage.setItem(AM_V53_VIP_ACCESS_KEY, String(until));
+  document.getElementById('pixPromptModal')?.classList.add('hidden');
+  v53UpdateVipAccessUI();
+  toast('Acesso liberado por 24 horas.');
+}
+async function v53CopyTextFrom(id, success){
+  const el = document.getElementById(id);
+  if(!el) return;
+  try{
+    await navigator.clipboard.writeText(el.value || el.textContent || '');
+    toast(success || 'Copiado.');
+  }catch(e){
+    if(el.select) el.select();
+    document.execCommand('copy');
+    toast(success || 'Copiado.');
+  }
+}
+function v53FilterPrompts(type){
+  const cards = document.querySelectorAll('#prompts .cards.horizontal [data-prompt-id]');
+  cards.forEach(card => {
+    const label = (card.querySelector('span')?.textContent || '').trim().toLowerCase();
+    const isVip = label === 'vip' || card.dataset.plan === 'vip';
+    const isFree = label === 'free';
+    let show = true;
+    if(type === 'vip') show = isVip;
+    if(type === 'free') show = isFree;
+    card.style.display = show ? '' : 'none';
+  });
+}
+function v53BindFilters(){
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    const txt = btn.textContent.trim().toLowerCase();
+    if(txt === 'vip'){
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        v53FilterPrompts('vip');
+        toast('Mostrando prompts VIP.');
+      });
+    }
+    if(txt === 'free'){
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        v53FilterPrompts('free');
+        toast('Mostrando prompts Free.');
+      });
+    }
+    if(txt.includes('mais recentes')){
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#prompts .cards.horizontal [data-prompt-id]').forEach(card => card.style.display = '');
+      });
+    }
+  });
+}
+function v53BindVipPrompt(){
+  const card = document.getElementById('pikapromptVipCard');
+  const modal = document.getElementById('vipPromptModal');
+  const pix = document.getElementById('pixPromptModal');
+  card?.addEventListener('click', v53OpenVipPrompt);
+  document.getElementById('closeVipPromptModal')?.addEventListener('click', () => modal?.classList.add('hidden'));
+  document.getElementById('closePixPromptModal')?.addEventListener('click', () => pix?.classList.add('hidden'));
+  modal?.addEventListener('click', e => { if(e.target.id === 'vipPromptModal') modal.classList.add('hidden'); });
+  pix?.addEventListener('click', e => { if(e.target.id === 'pixPromptModal') pix.classList.add('hidden'); });
+  document.getElementById('buyVipPromptBtn')?.addEventListener('click', v53OpenPix);
+  document.getElementById('confirmPixAccessBtn')?.addEventListener('click', v53ConfirmPixAccess);
+  document.getElementById('copyPixBtn')?.addEventListener('click', () => v53CopyTextFrom('pixCopyInput','PIX copia e cola copiado.'));
+  document.getElementById('copyVipPromptBtn')?.addEventListener('click', () => {
+    if(!v53HasVipPromptAccess()){
+      return v53OpenPix();
+    }
+    v53CopyTextFrom('vipPromptText','Prompt VIP copiado com sucesso.');
+  });
+  setInterval(v53UpdateVipAccessUI, 60000);
+}
+document.addEventListener('DOMContentLoaded', () => {
+  v53BindFilters();
+  v53BindVipPrompt();
+  v53UpdateVipAccessUI();
+});
+
+
+// V54 — Menu de Prompts dedicado com filtros
+function v54PromptCardKind(card){
+  const label = (card.querySelector('span')?.textContent || '').trim().toLowerCase();
+  if(label === 'vip' || card.dataset.plan === 'vip') return 'vip';
+  if(label === 'free') return 'free';
+  return 'other';
+}
+function v54GetReactionData(id){
+  try{
+    const data = JSON.parse(localStorage.getItem('am_prompt_reactions_v28') || '{}');
+    return data[id] || {likes:[], dislikes:[], favorites:[]};
+  }catch(e){
+    return {likes:[], dislikes:[], favorites:[]};
+  }
+}
+function v54FilterPromptMenu(filter){
+  const grid = document.querySelector('.prompt-menu-grid');
+  if(!grid) return;
+  const cards = [...grid.querySelectorAll('[data-prompt-id]')];
+  const me = typeof currentPromptUserKey === 'function' ? currentPromptUserKey() : null;
+
+  cards.forEach(card => {
+    const kind = v54PromptCardKind(card);
+    const data = v54GetReactionData(card.dataset.promptId);
+    const favs = Array.isArray(data.favorites) ? data.favorites : [];
+    let show = true;
+    if(filter === 'free') show = kind === 'free';
+    if(filter === 'vip') show = kind === 'vip';
+    if(filter === 'favorites'){
+      if(!currentUser){
+        openAuth('login');
+        toast('Faça login para ver favoritos.');
+        show = false;
+      } else {
+        show = favs.includes(me);
+      }
+    }
+    card.style.display = show ? '' : 'none';
+  });
+
+  if(filter === 'liked'){
+    cards
+      .sort((a,b) => {
+        const al = (v54GetReactionData(a.dataset.promptId).likes || []).length;
+        const bl = (v54GetReactionData(b.dataset.promptId).likes || []).length;
+        return bl - al;
+      })
+      .forEach(card => grid.appendChild(card));
+    cards.forEach(card => card.style.display = '');
+  }
+}
+function v54BindPromptMenu(){
+  document.querySelectorAll('.prompt-menu-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.prompt-menu-filter').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      v54FilterPromptMenu(btn.dataset.filter || 'all');
+    });
+  });
+
+  document.querySelectorAll('.prompt-menu-grid [data-prompt-id]').forEach(card => {
+    card.addEventListener('click', e => {
+      if(e.target.closest('.prompt-reactions')) return;
+      const id = card.dataset.promptId;
+      if(id === 'crie-imagem') document.querySelector('#promptModal')?.classList.remove('hidden');
+      else if(id === 'celebracao') document.querySelector('#celebrationPromptModal')?.classList.remove('hidden');
+      else if(id === 'harry-pack') document.querySelector('#harryPromptModal')?.classList.remove('hidden');
+      else if(id === 'pika-vip') {
+        if(typeof v53OpenVipPrompt === 'function') v53OpenVipPrompt();
+        else document.querySelector('#vipPromptModal')?.classList.remove('hidden');
+      }
+    });
+  });
+
+  document.querySelector('#seeMorePromptsBtn')?.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector('#promptMenu')?.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+}
+document.addEventListener('DOMContentLoaded', v54BindPromptMenu);
+
+
+// V55 — Home fecha central + Atendimentos em chat + Firestore realtime opcional
+let V55_TICKET_CHAT_ID = null;
+let V55_FIRESTORE = null;
+let V55_CLOUD_READY = false;
+let V55_REMOTE_PROMPT_REACTIONS = null;
+let V55_REMOTE_TICKETS = null;
+
+function v55CloseClientAreaAndGoHome(){
+  document.getElementById('clientAreaPage')?.classList.add('hidden');
+  document.getElementById('normalContent')?.classList.remove('feed-hidden');
+  document.getElementById('feedPage')?.classList.add('hidden');
+  document.getElementById('communityPage')?.classList.add('hidden');
+  location.hash = '#home';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a[href="#home"], .rail-item[href="#home"]').forEach(a => {
+    a.addEventListener('click', () => {
+      if(!document.getElementById('clientAreaPage')?.classList.contains('hidden')){
+        v55CloseClientAreaAndGoHome();
+      }
+    });
+  });
+});
+
+function v55IsAdmin(){ return currentUser && currentUser.role === 'admin'; }
+
+function v55AdjustAdminMenus(){
+  const att = document.querySelector('.client-nav[data-client-tab="attendances"]');
+  if(att) att.style.display = v55IsAdmin() ? '' : 'none';
+}
+const v55OriginalRenderClientArea = typeof renderClientArea === 'function' ? renderClientArea : null;
+if(v55OriginalRenderClientArea){
+  renderClientArea = function(){
+    v55OriginalRenderClientArea();
+    v55AdjustAdminMenus();
+    v55RenderAttendances();
+  };
+}
+const v55OriginalOpenClientArea = typeof openClientArea === 'function' ? openClientArea : null;
+if(v55OriginalOpenClientArea){
+  openClientArea = function(){
+    v55OriginalOpenClientArea();
+    v55AdjustAdminMenus();
+    v55RenderAttendances();
+  };
+}
+
+function v55TicketSearchMatch(ticket, query, status){
+  const q = String(query || '').toLowerCase().trim();
+  const okStatus = !status || status === 'all' || ticket.status === status;
+  if(!okStatus) return false;
+  if(!q) return true;
+  return [ticket.protocol, ticket.name, ticket.email, ticket.subject, ticket.message, ticket.status].join(' ').toLowerCase().includes(q);
+}
+function v55RenderAttendances(){
+  const list = document.getElementById('attendanceList');
+  if(!list || !v55IsAdmin()) return;
+  const q = document.getElementById('attendanceSearchInput')?.value || '';
+  const status = document.getElementById('attendanceStatusFilter')?.value || 'all';
+  const data = Array.isArray(supportTickets) ? supportTickets : [];
+  const tickets = data.filter(t => v55TicketSearchMatch(t, q, status));
+  if(!tickets.length){
+    list.innerHTML = '<div class="client-card"><p>Nenhum atendimento encontrado.</p></div>';
+    return;
+  }
+  list.innerHTML = tickets.slice().reverse().map(t => {
+    const count = (t.replies || []).length;
+    const statusClass = typeof ticketStatusClassV46 === 'function' ? ticketStatusClassV46(t.status) : '';
+    return `<article class="attendance-card ${statusClass}">
+      <div>
+        <div class="ticket-protocol">${safeText(t.protocol || 'Sem protocolo')}</div>
+        <strong>${safeText(t.subject || 'Atendimento')}</strong>
+        <span>${safeText(t.name || 'Cliente')} • ${safeText(t.email || '')}</span>
+        <small>${count} mensagem${count===1?'':'s'} • ${safeText(t.status || 'Aberto')}</small>
+      </div>
+      <button class="btn primary" onclick="v55OpenTicketChat(${t.id})">Abrir chat</button>
+    </article>`;
+  }).join('');
+}
+function v55RenderTicketChat(){
+  const ticket = supportTickets.find(t => t.id === V55_TICKET_CHAT_ID);
+  if(!ticket) return;
+  const title = document.getElementById('ticketChatTitle');
+  const sub = document.getElementById('ticketChatSubtitle');
+  const box = document.getElementById('ticketChatMessages');
+  if(title) title.textContent = ticket.subject || 'Atendimento';
+  if(sub) sub.textContent = `${ticket.protocol || 'Sem protocolo'} • ${ticket.name || 'Cliente'} • ${ticket.status || 'Aberto'}`;
+  const messages = [
+    {by: ticket.name || 'Cliente', role:'client', text: ticket.message || '', html: ticket.messageHTML || '', createdAt: ticket.createdAt},
+    ...(ticket.replies || []).map(r => ({...r, role: (String(r.by || '').toLowerCase().includes('admin') ? 'admin' : 'client')}))
+  ];
+  if(box){
+    box.innerHTML = messages.map(m => `<div class="chat-bubble ${m.role === 'admin' ? 'admin' : 'client'}">
+      <strong>${safeText(m.by || (m.role === 'admin' ? 'Admin' : 'Cliente'))}</strong>
+      <div>${m.html || safeText(m.text || '')}</div>
+      <span>${m.createdAt ? formatFeedDate(m.createdAt) : ''}</span>
+    </div>`).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+}
+window.v55OpenTicketChat = function(id){
+  if(!currentUser){ openAuth('login'); return; }
+  const ticket = supportTickets.find(t => t.id === id);
+  if(!ticket) return toast('Ticket não encontrado.');
+  const isOwner = ticket.owner === currentUserKey();
+  if(!v55IsAdmin() && !isOwner) return toast('Você não pode acessar este atendimento.');
+  V55_TICKET_CHAT_ID = id;
+  document.getElementById('ticketChatModal')?.classList.remove('hidden');
+  v55RenderTicketChat();
+};
+function v55SendTicketChatMessage(){
+  if(!V55_TICKET_CHAT_ID || !currentUser) return;
+  const input = document.getElementById('ticketChatText');
+  const text = (input?.value || '').trim();
+  if(!text) return toast('Digite uma mensagem.');
+  const by = v55IsAdmin() ? 'Admin' : (currentUser.name || currentUser.username || 'Cliente');
+  supportTickets = supportTickets.map(t => {
+    if(t.id !== V55_TICKET_CHAT_ID) return t;
+    const replies = Array.isArray(t.replies) ? t.replies : [];
+    const nextStatus = v55IsAdmin() ? 'Respondido' : (t.status === 'Encerrado' ? 'Aberto' : t.status);
+    return {...t, status: nextStatus, updatedAt: new Date().toISOString(), replies:[...replies, {by, text, createdAt:new Date().toISOString()}]};
+  });
+  saveSupportTickets();
+  input.value = '';
+  renderClientArea();
+  v55RenderTicketChat();
+  if(typeof v55SyncTicketsCloud === 'function') v55SyncTicketsCloud();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('attendanceSearchInput')?.addEventListener('input', v55RenderAttendances);
+  document.getElementById('attendanceStatusFilter')?.addEventListener('change', v55RenderAttendances);
+  document.getElementById('closeTicketChat')?.addEventListener('click', () => document.getElementById('ticketChatModal')?.classList.add('hidden'));
+  document.getElementById('sendTicketChatMessage')?.addEventListener('click', v55SendTicketChatMessage);
+  document.getElementById('ticketChatText')?.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); v55SendTicketChatMessage(); }
+  });
+});
+
+// abrir chat também a partir da lista normal de suporte
+const v55OldOpenAdminReply = window.openAdminReply;
+window.openAdminReply = function(id){
+  v55OpenTicketChat(id);
+};
+
+// Firestore opcional para sincronização real entre PCs/redes.
+// Para funcionar: ative Firestore Database no Firebase e permita leitura/escrita autenticada nas regras.
+async function v55InitCloudRealtime(){
+  try{
+    if(!googleConfigReady || !googleConfigReady()) return;
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(V36_GOOGLE_FIREBASE_CONFIG);
+    V55_FIRESTORE = fsMod.getFirestore(app);
+    V55_CLOUD_READY = true;
+
+    fsMod.onSnapshot(fsMod.doc(V55_FIRESTORE, 'assinaturaMagnetica', 'promptReactions'), snap => {
+      if(snap.exists()){
+        V55_REMOTE_PROMPT_REACTIONS = snap.data().value || {};
+        localStorage.setItem('am_prompt_reactions_v28', JSON.stringify(V55_REMOTE_PROMPT_REACTIONS));
+        if(typeof updatePromptReactionUI === 'function') updatePromptReactionUI();
+      }
+    });
+
+    fsMod.onSnapshot(fsMod.doc(V55_FIRESTORE, 'assinaturaMagnetica', 'supportTickets'), snap => {
+      if(snap.exists()){
+        V55_REMOTE_TICKETS = snap.data().value || [];
+        if(Array.isArray(V55_REMOTE_TICKETS)){
+          supportTickets = V55_REMOTE_TICKETS;
+          localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets));
+          if(typeof renderClientArea === 'function') renderClientArea();
+          if(V55_TICKET_CHAT_ID) v55RenderTicketChat();
+        }
+      }
+    });
+
+    window.v55FirestoreSetDoc = fsMod.setDoc;
+    window.v55FirestoreDoc = fsMod.doc;
+  }catch(e){
+    console.warn('V55 realtime Firestore indisponível. Usando localStorage.', e);
+  }
+}
+async function v55SyncPromptReactionsCloud(data){
+  try{
+    if(!V55_CLOUD_READY || !window.v55FirestoreSetDoc) return;
+    await window.v55FirestoreSetDoc(window.v55FirestoreDoc(V55_FIRESTORE, 'assinaturaMagnetica', 'promptReactions'), {value:data, updatedAt:Date.now()});
+  }catch(e){ console.warn('Falha ao sincronizar reações:', e); }
+}
+async function v55SyncTicketsCloud(){
+  try{
+    if(!V55_CLOUD_READY || !window.v55FirestoreSetDoc) return;
+    await window.v55FirestoreSetDoc(window.v55FirestoreDoc(V55_FIRESTORE, 'assinaturaMagnetica', 'supportTickets'), {value:supportTickets, updatedAt:Date.now()});
+  }catch(e){ console.warn('Falha ao sincronizar tickets:', e); }
+}
+
+// sobrescreve salvamentos locais para também tentar nuvem
+const v55OldSavePromptReactions = typeof savePromptReactions === 'function' ? savePromptReactions : null;
+if(v55OldSavePromptReactions){
+  savePromptReactions = function(data){
+    localStorage.setItem('am_prompt_reactions_v28', JSON.stringify(data));
+    v55SyncPromptReactionsCloud(data);
+  };
+}
+const v55OldSaveSupportTickets = typeof saveSupportTickets === 'function' ? saveSupportTickets : null;
+if(v55OldSaveSupportTickets){
+  saveSupportTickets = function(){
+    localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets));
+    v55SyncTicketsCloud();
+  };
+}
+document.addEventListener('DOMContentLoaded', v55InitCloudRealtime);
+
+
+// V56 — Comunidade sem bloco lateral duplicado + criações reais com imagem e prompt
+let v56TopicImageData = '';
+
+function v56EmptyCommunityMessage(){
+  return '<div class="community-empty"><strong>Não há criações no momento.</strong><p>Quando alguém publicar uma criação com imagem e prompt, ela aparecerá aqui.</p></div>';
+}
+
+function v56TopicCardHTML(t){
+  const img = t.image ? `<div class="community-creation-image"><img src="${t.image}" alt="Imagem da criação"></div>` : '';
+  const prompt = t.prompt ? `<details class="community-prompt-box"><summary>Ver prompt</summary><pre>${safeText(t.prompt)}</pre></details>` : '';
+  return `<article class="topic-card community-creation-card" data-topic-id="${t.id}">
+    <div class="topic-top"><div class="topic-avatar">${topicAvatarHTML(t)}</div><div class="topic-author"><strong>${safeText(t.name || 'Usuário')}</strong><span>${safeText(t.role || 'Membro')} • agora</span></div></div>
+    <span class="topic-tag">${categoryName(t.category)}</span>
+    <h4>${safeText(t.title)}</h4>
+    <p>${safeText(t.desc)}</p>
+    ${img}
+    ${prompt}
+    <div class="topic-stats"><button onclick="likeCommunityTopic(${t.id})">❤️ ${t.likes || 0}</button><span>💬 ${t.replies || 0} respostas</span><span>👁 ${t.views || 0} views</span></div>
+  </article>`;
+}
+
+renderCommunityTopics = function(){
+  const wrap = document.getElementById('communityTopics'); 
+  if(!wrap) return;
+  const list = communityTopics.filter(t => currentCommunityFilter === 'all' || t.category === currentCommunityFilter);
+  wrap.innerHTML = list.map(v56TopicCardHTML).join('') || v56EmptyCommunityMessage();
+};
+
+function bindCommunityImageV56(){
+  const input = document.getElementById('topicImageInput');
+  const preview = document.getElementById('topicImagePreview');
+  if(!input || !preview) return;
+  input.addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      v56TopicImageData = reader.result;
+      preview.innerHTML = `<img src="${reader.result}" alt="Preview">`;
+      preview.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bindCommunityImageV56();
+
+  const oldPublish = document.getElementById('publishTopic');
+  if(oldPublish){
+    const clone = oldPublish.cloneNode(true);
+    oldPublish.parentNode.replaceChild(clone, oldPublish);
+    clone.addEventListener('click', () => {
+      if(!currentUser){ openAuth('login'); return; }
+      const title = (document.getElementById('topicTitle')?.value || '').trim();
+      const desc = (document.getElementById('topicDesc')?.value || '').trim();
+      const category = document.getElementById('topicType')?.value || 'portfolio';
+      const prompt = (document.getElementById('topicPrompt')?.value || '').trim();
+      if(!title || !desc) return toast('Preencha título e descrição.');
+      communityTopics.unshift({
+        id:Date.now(),
+        category,
+        title,
+        desc,
+        prompt,
+        image:v56TopicImageData || '',
+        name:currentUser.name || currentUser.username || 'Usuário',
+        role: currentUser.role === 'admin' ? 'Administrador' : (currentUser.plan === 'VIP' ? 'Membro VIP' : 'Membro Free'),
+        photo:currentUser.photo || '',
+        likes:0,
+        replies:0,
+        views:1
+      });
+      saveCommunityTopics();
+      document.getElementById('topicTitle').value = '';
+      document.getElementById('topicDesc').value = '';
+      document.getElementById('topicPrompt').value = '';
+      const preview = document.getElementById('topicImagePreview');
+      if(preview){ preview.textContent = 'Enviar imagem de exemplo'; preview.classList.remove('has-image'); }
+      const input = document.getElementById('topicImageInput');
+      if(input) input.value = '';
+      v56TopicImageData = '';
+      closeTopicModal();
+      renderCommunityTopics();
+      toast('Criação salva na Comunidade.');
+    });
+  }
+});
+
+
+
+
+// V58 — Criações da comunidade começam vazias; não puxam prompts/destaques
+function v58CommunityEmptyHTML(){
+  return `<div class="community-empty community-empty-real">
+    <strong>Nenhuma imagem foi gerada ainda.</strong>
+    <p>Quando alguém publicar uma criação com imagem de exemplo e prompt, ela aparecerá aqui.</p>
+  </div>`;
+}
+function v58IsRealCommunityCreation(t){
+  return !!(t && (t.image || t.prompt) && t.title && t.desc);
+}
+function v58RenderCommunityOnlyRealCreations(){
+  const wrap = document.getElementById('communityTopics');
+  if(!wrap) return;
+  const saved = Array.isArray(communityTopics) ? communityTopics : [];
+  const list = saved
+    .filter(v58IsRealCommunityCreation)
+    .filter(t => currentCommunityFilter === 'all' || t.category === currentCommunityFilter);
+
+  if(!list.length){
+    wrap.innerHTML = v58CommunityEmptyHTML();
+    return;
+  }
+
+  wrap.innerHTML = list.map(t => {
+    const img = t.image ? `<div class="community-creation-image"><img src="${t.image}" alt="Imagem da criação"></div>` : '';
+    const prompt = t.prompt ? `<details class="community-prompt-box"><summary>Ver prompt</summary><pre>${safeText(t.prompt)}</pre></details>` : '';
+    return `<article class="topic-card community-creation-card" data-topic-id="${t.id}">
+      <div class="topic-top"><div class="topic-avatar">${topicAvatarHTML(t)}</div><div class="topic-author"><strong>${safeText(t.name || 'Usuário')}</strong><span>${safeText(t.role || 'Membro')} • agora</span></div></div>
+      <span class="topic-tag">${categoryName(t.category)}</span>
+      <h4>${safeText(t.title)}</h4>
+      <p>${safeText(t.desc)}</p>
+      ${img}
+      ${prompt}
+      <div class="topic-stats"><button onclick="likeCommunityTopic(${t.id})">❤️ ${t.likes || 0}</button><span>💬 ${t.replies || 0} respostas</span><span>👁 ${t.views || 0} views</span></div>
+    </article>`;
+  }).join('');
+}
+renderCommunityTopics = v58RenderCommunityOnlyRealCreations;
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(v58RenderCommunityOnlyRealCreations, 100);
+  document.querySelectorAll('.community-filter').forEach(btn => {
+    btn.addEventListener('click', () => setTimeout(v58RenderCommunityOnlyRealCreations, 50));
+  });
+});
+
+
+
+
+// V59 — Corrige título do Menu de Prompts que era renomeado indevidamente como Criações da comunidade
+function v59FixPromptMenuLabels(){
+  const menu = document.getElementById('promptMenu');
+  if(!menu) return;
+  const eyebrow = menu.querySelector('.section-head .eyebrow');
+  const title = menu.querySelector('.section-head h2');
+  if(eyebrow) eyebrow.textContent = 'Menu de Prompts';
+  if(title) title.textContent = 'Todos os prompts';
+}
+const v59OriginalApplyLanguage = typeof applyLanguage === 'function' ? applyLanguage : null;
+if(v59OriginalApplyLanguage){
+  applyLanguage = function(lang){
+    v59OriginalApplyLanguage(lang);
+    v59FixPromptMenuLabels();
+    if(typeof v58RenderCommunityOnlyRealCreations === 'function') v58RenderCommunityOnlyRealCreations();
+  };
+}
+document.addEventListener('DOMContentLoaded', () => {
+  v59FixPromptMenuLabels();
+  setTimeout(v59FixPromptMenuLabels, 200);
+  setTimeout(() => {
+    if(typeof v58RenderCommunityOnlyRealCreations === 'function') v58RenderCommunityOnlyRealCreations();
+  }, 250);
+});

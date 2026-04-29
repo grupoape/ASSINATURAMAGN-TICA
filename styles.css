@@ -1229,3 +1229,479 @@ body.dark-mode .subscription-countdown.infinite{
 #clientProtocols{
   display:none!important;
 }
+
+
+
+
+/* V53 EXPRESS — Logo premium, filtros FREE/VIP, PIX e acesso 24h */
+.rail-logo{
+  background:transparent!important;
+  border:0!important;
+  overflow:visible!important;
+}
+.rail-logo img{
+  width:44px;
+  height:44px;
+  display:block;
+  filter:drop-shadow(0 12px 24px rgba(97,168,255,.35));
+}
+.brand::before{
+  content:"";
+  display:inline-block;
+  width:24px;
+  height:24px;
+  margin-right:9px;
+  vertical-align:-6px;
+  background:url("am-logo.svg") center/contain no-repeat;
+  filter:drop-shadow(0 8px 18px rgba(97,168,255,.28));
+}
+.vip-prompt-card span{
+  background:#111!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.35);
+}
+.prompt-card[data-plan="vip"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border:2px solid rgba(97,168,255,.45);
+  border-radius:26px;
+  pointer-events:none;
+  z-index:3;
+}
+.pix-modal-card{
+  max-width:560px;
+}
+.pix-modal-card h2{
+  margin:0 0 8px;
+  font-size:34px;
+  letter-spacing:-.05em;
+}
+.pix-qrcode{
+  width:210px;
+  height:210px;
+  object-fit:contain;
+  display:block;
+  margin:18px auto;
+  background:#fff;
+  border-radius:18px;
+  padding:10px;
+  border:1px solid var(--line);
+}
+.pix-modal-card label{
+  display:block;
+  margin:14px 0 8px;
+  font-size:14px;
+  font-weight:900;
+}
+.pix-modal-card input,
+.pix-modal-card textarea{
+  width:100%;
+  border:1px solid #dfe3eb;
+  border-radius:18px;
+  padding:14px;
+  font-size:14px;
+  outline:none;
+  background:#fff;
+  color:#111318;
+}
+.pix-modal-card textarea{
+  min-height:120px;
+  resize:vertical;
+}
+#vipPromptText{
+  min-height:340px!important;
+}
+.prompt-locked-note{
+  padding:14px;
+  border-radius:16px;
+  background:rgba(255,209,102,.15);
+  color:#ffd166;
+  font-weight:850;
+}
+body.dark-mode .pix-modal-card input,
+body.dark-mode .pix-modal-card textarea{
+  background:#07101f!important;
+  color:#f8fbff!important;
+  border-color:rgba(143,198,255,.18)!important;
+}
+body.dark-mode .pix-qrcode{
+  border-color:rgba(143,198,255,.18)!important;
+}
+
+
+/* V54 — Home com 4 destaques + menu exclusivo de prompts */
+.home-prompt-highlights .prompt-card:nth-child(n+5){
+  display:none!important;
+}
+.prompt-menu-section{
+  margin-top:42px;
+  padding:28px;
+  border-radius:32px;
+  background:linear-gradient(135deg,rgba(97,168,255,.10),rgba(255,255,255,.72));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-soft);
+}
+.prompt-menu-filters{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:0 0 18px;
+}
+.prompt-menu-filter{
+  border:1px solid var(--line);
+  background:#fff;
+  color:#111318;
+  border-radius:999px;
+  padding:11px 16px;
+  font-weight:950;
+}
+.prompt-menu-filter.active,
+.prompt-menu-filter:hover{
+  background:#111318;
+  color:#fff;
+}
+.prompt-menu-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+.prompt-menu-grid .prompt-card{
+  min-height:300px;
+}
+body.dark-mode .prompt-menu-section{
+  background:linear-gradient(135deg,rgba(17,27,43,.96),rgba(9,16,29,.96))!important;
+  border-color:rgba(143,198,255,.16)!important;
+}
+body.dark-mode .prompt-menu-filter{
+  background:#0b1220!important;
+  color:#d7e3f4!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+body.dark-mode .prompt-menu-filter.active,
+body.dark-mode .prompt-menu-filter:hover{
+  background:rgba(97,168,255,.18)!important;
+  color:#8fc6ff!important;
+}
+@media(max-width:980px){
+  .prompt-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:560px){
+  .prompt-menu-grid{grid-template-columns:1fr!important}
+}
+
+
+/* V55 — Atendimentos em chat + Home volta para o site */
+.admin-only-nav{display:none;}
+.attendance-list{
+  display:grid;
+  gap:14px;
+}
+.attendance-card{
+  background:#fff;
+  color:#111318;
+  border:1px solid #dfe7f2;
+  border-radius:22px;
+  padding:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  box-shadow:0 14px 38px rgba(0,0,0,.14);
+}
+.attendance-card strong{
+  display:block;
+  font-size:18px;
+  margin:6px 0 4px;
+}
+.attendance-card span,
+.attendance-card small{
+  display:block;
+  color:#667085;
+  font-weight:750;
+}
+.attendance-card.encerrado{
+  opacity:.72;
+}
+.ticket-chat-card{
+  width:min(880px,96vw);
+  height:min(760px,92vh);
+  background:#fff;
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.ticket-chat-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 22px;
+  background:#07111f;
+  color:#fff;
+}
+.ticket-chat-header strong{
+  display:block;
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+.ticket-chat-header span{
+  display:block;
+  color:rgba(255,255,255,.68);
+  font-size:13px;
+  font-weight:750;
+  margin-top:3px;
+}
+.ticket-chat-close{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:0;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-size:24px;
+}
+.ticket-chat-messages{
+  flex:1;
+  overflow:auto;
+  padding:22px;
+  background:linear-gradient(180deg,#f8fafc,#eef4ff);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.chat-bubble{
+  max-width:78%;
+  border-radius:20px;
+  padding:13px 15px;
+  box-shadow:0 10px 24px rgba(0,0,0,.08);
+}
+.chat-bubble strong{
+  display:block;
+  font-size:13px;
+  margin-bottom:5px;
+}
+.chat-bubble div{
+  line-height:1.5;
+  font-weight:650;
+}
+.chat-bubble span{
+  display:block;
+  font-size:11px;
+  opacity:.62;
+  margin-top:7px;
+}
+.chat-bubble.client{
+  align-self:flex-start;
+  background:#fff;
+  color:#111318;
+  border-bottom-left-radius:6px;
+}
+.chat-bubble.admin{
+  align-self:flex-end;
+  background:#61a8ff;
+  color:#fff;
+  border-bottom-right-radius:6px;
+}
+.ticket-chat-input{
+  display:flex;
+  gap:10px;
+  padding:14px;
+  border-top:1px solid var(--line);
+  background:#fff;
+}
+.ticket-chat-input textarea{
+  flex:1;
+  min-height:52px;
+  max-height:120px;
+  resize:vertical;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+  font-family:inherit;
+  outline:none;
+}
+body.dark-mode .attendance-card,
+body.dark-mode .ticket-chat-card,
+body.dark-mode .ticket-chat-input{
+  background:#0f1724!important;
+  color:#f8fbff!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+body.dark-mode .attendance-card span,
+body.dark-mode .attendance-card small{
+  color:#a9b4c4!important;
+}
+body.dark-mode .ticket-chat-messages{
+  background:linear-gradient(180deg,#07101f,#0b1220)!important;
+}
+body.dark-mode .chat-bubble.client{
+  background:#101827!important;
+  color:#f8fbff!important;
+}
+body.dark-mode .ticket-chat-input textarea{
+  background:#07101f!important;
+  color:#f8fbff!important;
+  border-color:rgba(143,198,255,.18)!important;
+}
+@media(max-width:760px){
+  .attendance-card{display:block}
+  .attendance-card .btn{margin-top:12px;width:100%}
+  .chat-bubble{max-width:92%}
+  .ticket-chat-input{display:block}
+  .ticket-chat-input .btn{width:100%;margin-top:10px}
+}
+
+
+/* V56 — Comunidade limpa + criação com imagem e prompt */
+.community-image-upload{
+  border:1px dashed #cbd5e1;
+  border-radius:20px;
+  background:#f8fafc;
+  padding:12px;
+  margin-bottom:14px;
+}
+.community-image-upload input{
+  width:100%;
+  margin-bottom:10px;
+}
+.topic-image-preview{
+  min-height:160px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  color:#667085;
+  font-weight:900;
+  background:#fff;
+  overflow:hidden;
+}
+.topic-image-preview img{
+  width:100%;
+  height:240px;
+  object-fit:cover;
+  display:block;
+}
+.community-creation-card{
+  overflow:hidden;
+}
+.community-creation-image{
+  margin:14px 0;
+  border-radius:20px;
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.08);
+}
+.community-creation-image img{
+  width:100%;
+  max-height:360px;
+  object-fit:cover;
+  display:block;
+}
+.community-prompt-box{
+  margin:12px 0;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  padding:12px;
+}
+.community-prompt-box summary{
+  cursor:pointer;
+  font-weight:950;
+  color:#347ee8;
+}
+.community-prompt-box pre{
+  white-space:pre-wrap;
+  font-family:inherit;
+  font-size:13px;
+  line-height:1.5;
+  color:#344054;
+}
+body.dark-mode .community-image-upload,
+body.dark-mode .topic-image-preview,
+body.dark-mode .community-prompt-box{
+  background:#07101f!important;
+  border-color:rgba(143,198,255,.18)!important;
+  color:#d7e3f4!important;
+}
+body.dark-mode .community-prompt-box pre{
+  color:#d7e3f4!important;
+}
+
+
+
+
+/* V57 — Correção de sobreposição dos prompts */
+.home-prompt-highlights,
+.prompt-menu-grid{
+  display:grid!important;
+  align-items:stretch!important;
+}
+.home-prompt-highlights{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+.home-prompt-highlights .prompt-card{
+  display:flex!important;
+  min-width:0!important;
+}
+.prompt-menu-section{
+  clear:both!important;
+  display:block!important;
+}
+.prompt-menu-grid .prompt-card{
+  display:flex!important;
+  min-width:0!important;
+}
+@media(max-width:980px){
+  .home-prompt-highlights{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:560px){
+  .home-prompt-highlights{grid-template-columns:1fr!important}
+}
+
+
+
+
+/* V58 — Comunidade vazia sem puxar prompts */
+.community-empty-real{
+  width:100%;
+  min-height:220px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding:34px;
+  border:1px dashed rgba(97,168,255,.32);
+  background:rgba(97,168,255,.08);
+  border-radius:28px;
+}
+.community-empty-real strong{
+  display:block;
+  font-size:24px;
+  color:#f8fbff;
+  margin-bottom:8px;
+}
+.community-empty-real p{
+  color:#a9b4c4!important;
+  font-weight:800;
+  max-width:520px;
+}
+#communityTopics{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+#communityTopics .prompt-card{
+  display:none!important;
+}
+@media(max-width:800px){
+  #communityTopics{grid-template-columns:1fr}
+}
+
+
+
+
+/* V59 — Garante que o Menu de Prompts não seja confundido com Comunidade */
+#promptMenu .section-head .eyebrow::after{
+  content:"";
+}
+#promptMenu{
+  margin-top:42px!important;
+}

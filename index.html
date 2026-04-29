@@ -8,7 +8,7 @@
 </head>
 <body><section id="welcomeScreen" class="welcome-screen"><div class="welcome-bg-text top">CREATOR</div><div class="welcome-bg-text left">YOUR IDEAS</div><div class="welcome-bg-text right">YOUR TOOLS</div><div class="welcome-bg-text bottom">TO CREATE</div><div class="welcome-center"><div class="welcome-brand">ASSINATURA MAGNÉTICA</div><h1>CREATOR-FIRST<br>AI PLATFORM</h1><p>Seu portal magnético para criar, vender e crescer.</p><button id="enterPlatform" class="welcome-btn" onclick="enterPlatform()">COMEÇAR AGORA</button></div></section>
   <aside class="side-rail">
-    <div class="rail-logo">AM</div>
+    <div class="rail-logo"><img src="am-logo.svg" alt="Assinatura Magnética"></div>
     <a class="rail-item active" href="#home">⌂<span>Home</span></a>
     <a class="rail-item" href="#prompts">▦<span>Prompts</span></a>
     <a class="rail-item" href="#feed">☰<span>Feed</span></a>
@@ -101,29 +101,40 @@
             <p class="eyebrow">Featured Prompts</p>
             <h2>Prompts em destaque</h2>
           </div>
-          <a href="#">Ver todos →</a>
+          <a href="#promptMenu" id="seeMorePromptsBtn">Ver mais →</a>
         </div>
-        <div class="cards horizontal">
+        <div class="cards horizontal home-prompt-highlights">
           <article class="prompt-card prompt-feature-card" id="featuredPromptCard" data-prompt-id="crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
           <article class="prompt-card prompt-feature-card" id="celebrationPromptCard" data-prompt-id="celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
           <article class="prompt-card prompt-feature-card" id="harryPromptCard" data-prompt-id="harry-pack"><img src="prompt-harry-cover.png" alt="Super Pack Harry Potter 3"><span>FREE</span><h3>Super Pack Harry Potter 3</h3><p>Prompt mágico editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
-          <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
-          <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          <article class="prompt-card prompt-feature-card vip-prompt-card" id="pikapromptVipCard" data-prompt-id="pika-vip" data-plan="vip"><img src="prompt-vip-cover.png" alt="Prompt VIP Premium"><span>VIP</span><h3>Super Pack Prompt VIP</h3><p>Prompt premium exclusivo com acesso VIP ou compra avulsa.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
         </div>
 
-        <div class="section-head mt">
-          <div>
-            <p class="eyebrow">Community Creations</p>
-            <h2>Criações da comunidade</h2>
+        <section id="promptMenu" class="prompt-menu-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Menu de Prompts</p>
+              <h2>Todos os prompts</h2>
+            </div>
           </div>
-        </div>
-        <div class="masonry">
-          <article class="creation tall"><div class="avatar">B</div><h3>BatPunk</h3><p>{ prompt: "Abstract glitch art with hidden geometric symbol..." }</p><button>✦ Remix</button></article>
-          <article class="creation"><h3>Minimal AI Portrait</h3><p>Prompt para retrato realista editorial.</p></article>
-          <article class="creation wide"><h3>Mentoria Magnética</h3><p>Conteúdo premium para transformar presença em influência.</p></article>
-        </div>
+          <div class="prompt-menu-filters">
+            <button class="prompt-menu-filter active" data-filter="all">Todos</button>
+            <button class="prompt-menu-filter" data-filter="free">Free</button>
+            <button class="prompt-menu-filter" data-filter="vip">VIP</button>
+            <button class="prompt-menu-filter" data-filter="favorites">Favoritos</button>
+            <button class="prompt-menu-filter" data-filter="liked">Mais curtidos</button>
+          </div>
+          <div class="cards horizontal prompt-menu-grid">
+            <article class="prompt-card prompt-feature-card" id="menu-featuredPromptCard" data-prompt-id="menu-crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+            <article class="prompt-card prompt-feature-card" id="menu-celebrationPromptCard" data-prompt-id="menu-celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+            <article class="prompt-card prompt-feature-card" id="menu-harryPromptCard" data-prompt-id="menu-harry-pack"><img src="prompt-harry-cover.png" alt="Super Pack Harry Potter 3"><span>FREE</span><h3>Super Pack Harry Potter 3</h3><p>Prompt mágico editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+            <article class="prompt-card prompt-feature-card vip-prompt-card" id="menu-pikapromptVipCard" data-prompt-id="menu-pika-vip" data-plan="vip"><img src="prompt-vip-cover.png" alt="Prompt VIP Premium"><span>VIP</span><h3>Super Pack Prompt VIP</h3><p>Prompt premium exclusivo com acesso VIP ou compra avulsa.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+            <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+            <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          </div>
+        </section>
 
-        <section class="marketplace-section" id="marketplace">
+<section class="marketplace-section" id="marketplace">
           <p class="eyebrow">Marketplace</p>
           <h2>Venda prompts, packs, mentorias e produtos digitais</h2>
           <p>Área premium para criadores VIP publicarem seus stands, estampas, templates e serviços.</p>
@@ -425,7 +436,14 @@
       <input id="topicTitle" type="text" placeholder="Ex: Avaliem meu novo prompt visual" />
       <label>Descrição</label>
       <textarea id="topicDesc" placeholder="Escreva o contexto, peça feedback ou apresente seu trabalho..."></textarea>
-      <button id="publishTopic" class="btn primary full">Publicar debate</button>
+      <label>Imagem de exemplo</label>
+      <div class="community-image-upload">
+        <input id="topicImageInput" type="file" accept="image/*" />
+        <div id="topicImagePreview" class="topic-image-preview">Enviar imagem de exemplo</div>
+      </div>
+      <label>Prompt</label>
+      <textarea id="topicPrompt" placeholder="Cole aqui o prompt usado na criação..."></textarea>
+      <button id="publishTopic" class="btn primary full">Salvar criação</button>
     </div>
   </div>
 
@@ -469,6 +487,7 @@
         <button class="client-nav active" data-client-tab="overview">🏠 Início</button>
         <button class="client-nav" data-client-tab="services">🧾 Serviços e Faturas</button>
         <button class="client-nav" data-client-tab="support">🎧 Support</button>
+        <button class="client-nav admin-only-nav" data-client-tab="attendances">💬 Atendimentos</button>
         <button class="client-nav" data-client-tab="payments">💳 2ª via - Pagamentos</button>
         <button id="backFromClientArea" class="client-back">← Voltar ao site</button>
       </aside>
@@ -516,6 +535,24 @@
             </select>
           </div>
           <div id="supportTicketsList" class="tickets-list"></div>
+        </section>
+
+
+        <section id="clientAttendances" class="client-tab">
+          <div class="client-section-head">
+            <h3>Atendimentos</h3>
+            <span class="feed-pill">Tickets em tempo real</span>
+          </div>
+          <div class="ticket-toolbar">
+            <input id="attendanceSearchInput" type="search" placeholder="Buscar por cliente, protocolo, assunto ou status..." />
+            <select id="attendanceStatusFilter">
+              <option value="all">Todos</option>
+              <option value="Aberto">Aberto</option>
+              <option value="Respondido">Respondido</option>
+              <option value="Encerrado">Encerrado</option>
+            </select>
+          </div>
+          <div id="attendanceList" class="attendance-list"></div>
         </section>
 
         <section id="clientPayments" class="client-tab">
@@ -641,6 +678,64 @@
           <textarea id="harryPromptText" readonly>Crie uma fotografia hiper-realista e extremamente natural de uma pessoa com características físicas fiéis à imagem de referência, usando uniforme escolar de Hogwarts com aparência real e tecido convincente, incluindo camisa branca, gravata nas cores da casa, suéter ou colete de lã com microtextura visível e manto escuro com caimento natural. A câmera deve estar levemente acima da linha dos olhos, inclinada para baixo em ângulo íntimo e espontâneo, como um registro real capturado no momento, com profundidade de campo rasa e foco seletivo. Diferente de um close muito fechado, a imagem deve estar um pouco mais distanciada, mostrando melhor o tronco, parte do uniforme e a postura da pessoa. A pessoa estende o braço em direção à câmera segurando uma varinha, posicionada muito próxima da lente e propositalmente fora de foco no primeiro plano, criando um desfoque óptico realista e orgânico. Na ponta da varinha deve haver um brilho mágico visível, elegante e sutilmente intenso, com aparência física real, como uma luz encantada quente e viva, sem parecer efeito digital artificial. A iluminação deve simular luz solar real de fim de tarde, golden hour, com incidência lateral e contraluz suave, gerando highlights quentes e naturais. A luz atravessa o ambiente e interage fisicamente com a lente, produzindo flares ópticos reais, reflexos prismáticos sutis, dispersões cromáticas irregulares e halos de luz dourados e alaranjados visíveis no ar, como resultado de refração e difração da luz solar misturada ao brilho mágico da varinha. Esses flares não devem parecer gráficos ou artificiais, mas imperfeitos, orgânicos e distribuídos de forma aleatória, como em uma lente real sob luz intensa. A paleta de cores deve ser quente, com predominância de tons dourados, âmbar e laranja suave, equilibrados por verdes naturais no ambiente e pelos tons escuros, sóbrios e elegantes do uniforme, sem saturação excessiva e sem aparência digital. Os olhos devem ser expressivos, com brilho real refletindo a luz dourada, tornando o olhar marcante, vivo e cinematográfico. A pele deve manter textura real, com poros visíveis, microvariações de tom, rubor natural nas bochechas e leve translucidez nos áreas iluminadas, sem suavização artificial. O cabelo deve apresentar fios individualizados, leve frizz e desalinhamento natural, reagindo à luz de forma realista. O fundo deve permanecer suavemente desfocado, com sensação de profundidade real e bokeh orgânico, preservando a leitura de um ambiente externo ligado ao universo de Hogwarts, como pátio, jardim ou área de pedra antiga, sem roubar o protagonismo da cena. A imagem final deve transmitir a sensação de uma fotografia capturada por uma câmera profissional real, com comportamento óptico crível, iluminação física consistente, ausência total de HDR, zero aparência ilustrativa, estética cinematográfica analógica sutil, granulação extremamente fina e natural, atmosfera íntima, mágica, poética e verossímil, impossível de ser identificada como imagem gerada por IA.</textarea>
           <button id="copyHarryPromptBtn" class="btn primary full">Copiar prompt</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="vipPromptModal" class="modal hidden">
+    <div class="modal-card prompt-modal-card">
+      <button class="close" id="closeVipPromptModal">×</button>
+      <div class="prompt-modal-grid">
+        <img src="prompt-vip-detail.png" alt="Detalhe do prompt VIP" class="prompt-detail-img" id="vipPromptDetailImage" />
+        <div class="prompt-copy-area">
+          <p class="eyebrow">Prompt VIP</p>
+          <h2>Super Pack Prompt VIP</h2>
+          <p id="vipPromptAccessNote">Acesso exclusivo VIP/Creator ou compra avulsa por R$10,00 com liberação por 24h.</p>
+          <textarea id="vipPromptText" readonly>Eu autorizo o uso da imagem de referência para gerar esta criação. Crie uma fotografia hiper-realista, íntima e cinematográfica de uma pessoa com características fiéis à imagem de referência, sentada em um sofá macio, em um momento de aconchego genuíno, abraçando um mascote amarelo carinhoso e expressivo, com pele macia, volume natural, brilho sutil nos olhos, pequenas variações de textura e presença física convincente, como se ele existisse de verdade naquele ambiente. A interação deve parecer espontânea e afetuosa, como se estivessem dividindo um instante silencioso e especial, trocando atenção, calor e presença.
+
+O cenário deve transmitir um quarto ou sala com estética nerd aconchegante, cheio de personalidade e memória afetiva, com luzes de pisca-pisca de Natal espalhadas pelo ambiente, criando pontos de brilho suaves, quentes e difusos, envolvendo a cena em uma atmosfera poética e nostálgica. Incluir plantas naturais ao redor, trazendo frescor, vida e organicidade ao espaço, combinadas com elementos sutis do universo geek, como livros, itens colecionáveis, controles, pôsteres discretos e objetos de mesa pequenos, sem roubar o protagonismo.
+
+A iluminação deve ser quente, suave e natural, simulando luz ambiente vívida, criativa e emocionalmente confortável, sem poluir a composição. A direção da cena deve parecer observacional e autêntica, como uma fotografia capturada no meio de um momento real, com gestos naturais, corpo relaxado, expressão contemplativa e delicada, como se a pessoa e o mascote realmente estivessem vivendo aquele instante juntos e interagindo também com a luz, os objetos e o silêncio do ambiente.
+
+Iluminação quente e baixa, com predominância das luzes decorativas refletindo na pele, no tecido do sofá, nas folhas das plantas e na pelagem do mascote, criando profundidade, brilho suave e sensação de lar. Composição vertical, estética editorial com forte leitura poética, ultra detalhada, realismo máximo, textura de pele preservada, tecidos críveis, profundidade óptica real, contraste equilibrado, atmosfera sensível e mágica sem perder naturalidade, como um frame de filme intimista capturado em fotografia de alto nível.</textarea>
+          <button id="copyVipPromptBtn" class="btn primary full">Copiar prompt</button>
+          <button id="buyVipPromptBtn" class="btn ghost full">Comprar acesso 24h por PIX — R$10,00</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pixPromptModal" class="modal hidden">
+    <div class="modal-card pix-modal-card">
+      <button class="close" id="closePixPromptModal">×</button>
+      <p class="eyebrow">Pagamento PIX</p>
+      <h2>Acesso avulso 24h</h2>
+      <p class="safe-note">Após confirmar, este prompt ficará liberado por 24 horas neste navegador.</p>
+      <img src="pix-qrcode.png" alt="QR Code PIX" class="pix-qrcode">
+      <label>Chave PIX</label>
+      <input id="pixKeyInput" readonly value="fernandoalmeidacarvalhojr@gmail.com">
+      <label>PIX copia e cola</label>
+      <textarea id="pixCopyInput" readonly>00020126570014BR.GOV.BCB.PIX0135fernandoalmeidacarvalhojr@gmail.com520400005303986540510.005802BR5901N6001C62230519AssinaturaMagnetica6304DE27</textarea>
+      <button id="copyPixBtn" class="btn ghost full">Copiar PIX copia e cola</button>
+      <button id="confirmPixAccessBtn" class="btn primary full">Já paguei — liberar acesso por 24h</button>
+    </div>
+  </div>
+
+
+  <div id="ticketChatModal" class="modal hidden">
+    <div class="ticket-chat-card">
+      <div class="ticket-chat-header">
+        <div>
+          <strong id="ticketChatTitle">Atendimento</strong>
+          <span id="ticketChatSubtitle">Protocolo</span>
+        </div>
+        <button id="closeTicketChat" class="ticket-chat-close" type="button">×</button>
+      </div>
+      <div id="ticketChatMessages" class="ticket-chat-messages"></div>
+      <div class="ticket-chat-input">
+        <textarea id="ticketChatText" placeholder="Digite sua mensagem..."></textarea>
+        <button id="sendTicketChatMessage" class="btn primary" type="button">Enviar</button>
       </div>
     </div>
   </div>
