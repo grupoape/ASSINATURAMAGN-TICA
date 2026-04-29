@@ -37,6 +37,13 @@
           <option value="es">Español</option>
         </select>
         <button id="darkModeBtn" class="btn theme-toggle" type="button" title="Ativar modo escuro">🌙</button>
+        <div class="notification-wrap">
+          <button id="notificationBtn" class="notification-btn" type="button" title="Notificações">🔔<span id="notificationCount" class="notification-count hidden">0</span></button>
+          <div id="notificationPanel" class="notification-panel hidden">
+            <div class="notification-head"><strong>Notificações</strong><button id="clearNotificationsBtn" type="button">Limpar</button></div>
+            <div id="notificationList" class="notification-list"></div>
+          </div>
+        </div>
         <div class="account-menu-wrap">
           <button id="accountMenuBtn" class="account-menu-btn" type="button" title="Conta">
             <span id="accountAvatar" class="account-avatar">AM</span>

@@ -1452,3 +1452,160 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, true);
 });
+
+
+
+
+// V45 — Sistema de notificações Cliente/Admin
+const NOTIFICATIONS_KEY = 'am_notifications_v45';
+let amNotifications = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]');
+
+function saveNotificationsV45(){
+  localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(amNotifications));
+}
+function currentNotificationUserKey(){
+  if(!currentUser) return 'guest';
+  return String(currentUser.id || currentUser.email || currentUser.username || currentUser.name || 'user');
+}
+function pushNotificationV45({to='all', role='', title='', message='', type='info', link=''}) {
+  amNotifications.push({
+    id: Date.now() + Math.random(),
+    to,
+    role,
+    title,
+    message,
+    type,
+    link,
+    readBy: [],
+    createdAt: new Date().toISOString()
+  });
+  saveNotificationsV45();
+  renderNotificationsV45();
+}
+function visibleNotificationsV45(){
+  if(!currentUser) return [];
+  const me = currentNotificationUserKey();
+  const role = currentUser.role || 'user';
+  return amNotifications.filter(n => {
+    if(n.to === 'all') return true;
+    if(n.to === me) return true;
+    if(n.role && n.role === role) return true;
+    if(n.role === 'admin' && role === 'admin') return true;
+    return false;
+  }).slice().reverse();
+}
+function unreadNotificationsV45(){
+  const me = currentNotificationUserKey();
+  return visibleNotificationsV45().filter(n => !(n.readBy || []).includes(me));
+}
+function renderNotificationsV45(){
+  const count = document.getElementById('notificationCount');
+  const list = document.getElementById('notificationList');
+  const unread = unreadNotificationsV45();
+  if(count){
+    count.textContent = unread.length;
+    count.classList.toggle('hidden', unread.length === 0);
+  }
+  if(!list) return;
+  const notifications = visibleNotificationsV45();
+  if(!currentUser){
+    list.innerHTML = '<div class="notification-empty">Faça login para ver notificações.</div>';
+    return;
+  }
+  if(!notifications.length){
+    list.innerHTML = '<div class="notification-empty">Nenhuma notificação por enquanto.</div>';
+    return;
+  }
+  list.innerHTML = notifications.map(n => `
+    <button class="notification-item" onclick="openNotificationV45('${n.id}')">
+      <strong>${safeText(n.title)}</strong>
+      <span>${safeText(n.message)}</span>
+    </button>
+  `).join('');
+}
+window.openNotificationV45 = function(id){
+  const me = currentNotificationUserKey();
+  amNotifications = amNotifications.map(n => String(n.id) === String(id)
+    ? {...n, readBy: Array.from(new Set([...(n.readBy || []), me]))}
+    : n
+  );
+  saveNotificationsV45();
+  renderNotificationsV45();
+  const n = amNotifications.find(x => String(x.id) === String(id));
+  if(n && n.link){
+    if(n.link === 'client-area') openClientArea();
+    else location.hash = n.link;
+  }
+};
+function clearNotificationsV45(){
+  const me = currentNotificationUserKey();
+  amNotifications = amNotifications.map(n => ({...n, readBy: Array.from(new Set([...(n.readBy || []), me]))}));
+  saveNotificationsV45();
+  renderNotificationsV45();
+}
+function bindNotificationsV45(){
+  document.getElementById('notificationBtn')?.addEventListener('click', () => {
+    if(!currentUser){ openAuth('login'); return toast('Faça login para ver notificações.'); }
+    document.getElementById('notificationPanel')?.classList.toggle('hidden');
+    renderNotificationsV45();
+  });
+  document.getElementById('clearNotificationsBtn')?.addEventListener('click', clearNotificationsV45);
+  document.addEventListener('click', e => {
+    const wrap = document.querySelector('.notification-wrap');
+    if(wrap && !wrap.contains(e.target)) document.getElementById('notificationPanel')?.classList.add('hidden');
+  });
+  renderNotificationsV45();
+}
+document.addEventListener('DOMContentLoaded', bindNotificationsV45);
+
+// Hooks simples para gerar notificações em ações importantes
+const originalPublishSupportTicketV45 = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+if(originalPublishSupportTicketV45){
+  publishSupportTicket = function(){
+    const before = supportTickets.length;
+    originalPublishSupportTicketV45();
+    if(supportTickets.length > before){
+      const ticket = supportTickets[supportTickets.length - 1];
+      pushNotificationV45({
+        role:'admin',
+        title:'Novo ticket aberto',
+        message:`${ticket.name} abriu: ${ticket.subject}`,
+        type:'ticket',
+        link:'client-area'
+      });
+    }
+  };
+}
+
+const originalSendAdminReplyV45 = typeof sendAdminReply === 'function' ? sendAdminReply : null;
+if(originalSendAdminReplyV45){
+  sendAdminReply = function(){
+    const ticket = supportTickets.find(t => t.id === replyingTicketId);
+    originalSendAdminReplyV45();
+    if(ticket){
+      pushNotificationV45({
+        to: ticket.owner,
+        title:'Seu ticket foi respondido',
+        message:`Resposta no ticket: ${ticket.subject}`,
+        type:'ticket-reply',
+        link:'client-area'
+      });
+    }
+  };
+}
+
+const originalRenderFeedPostsV45 = typeof renderFeedPosts === 'function' ? renderFeedPosts : null;
+if(originalRenderFeedPostsV45){
+  renderFeedPosts = function(){
+    originalRenderFeedPostsV45();
+    renderNotificationsV45();
+  };
+}
+
+const originalRefreshUserUIV45 = typeof refreshUserUI === 'function' ? refreshUserUI : null;
+if(originalRefreshUserUIV45){
+  refreshUserUI = function(){
+    originalRefreshUserUIV45();
+    renderNotificationsV45();
+  };
+}
