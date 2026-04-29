@@ -2173,3 +2173,109 @@ window.reopenTicketV46 = function(id){
     });
   }
 };
+
+
+
+
+// V49 — Ajustes solicitados: somente admin altera ticket + protocolos só para cliente + alerta de assinatura
+function canEditTicketV46(ticket){
+  return !!(currentUser && currentUser.role === 'admin');
+}
+
+function adjustClientMenuForRoleV49(){
+  const protocolBtn = document.querySelector('.client-nav[data-client-tab="protocols"]');
+  const supportBtn = document.querySelector('.client-nav[data-client-tab="support"]');
+  if(protocolBtn){
+    protocolBtn.style.display = (currentUser && currentUser.role === 'admin') ? 'none' : '';
+    if(currentUser && currentUser.role === 'admin' && protocolBtn.classList.contains('active')){
+      supportBtn?.click();
+    }
+  }
+}
+const originalRenderClientAreaV49 = typeof renderClientArea === 'function' ? renderClientArea : null;
+if(originalRenderClientAreaV49){
+  renderClientArea = function(){
+    originalRenderClientAreaV49();
+    adjustClientMenuForRoleV49();
+    renderSubscriptionCountdownV49();
+  };
+}
+const originalOpenClientAreaV49 = typeof openClientArea === 'function' ? openClientArea : null;
+if(originalOpenClientAreaV49){
+  openClientArea = function(){
+    originalOpenClientAreaV49();
+    adjustClientMenuForRoleV49();
+    renderSubscriptionCountdownV49();
+  };
+}
+
+function ensureSubscriptionDataV49(){
+  if(!currentUser) return;
+  if((currentUser.plan === 'VIP' || currentUser.plan === 'Creator') && !currentUser.subscriptionEndsAt){
+    const end = new Date();
+    end.setDate(end.getDate() + 30);
+    currentUser.subscriptionStartedAt = currentUser.subscriptionStartedAt || new Date().toISOString();
+    currentUser.subscriptionEndsAt = end.toISOString();
+    users = users.map(u => {
+      const same = (currentUser.id && u.id === currentUser.id) || (currentUser.email && u.email === currentUser.email) || (currentUser.username && u.username === currentUser.username);
+      return same ? {...u, subscriptionStartedAt: currentUser.subscriptionStartedAt, subscriptionEndsAt: currentUser.subscriptionEndsAt} : u;
+    });
+    saveUsers();
+    localStorage.setItem('am_user', JSON.stringify(currentUser));
+  }
+}
+function diffSubscriptionV49(){
+  if(!currentUser || !currentUser.subscriptionEndsAt) return null;
+  const end = new Date(currentUser.subscriptionEndsAt).getTime();
+  const now = Date.now();
+  let diff = Math.max(0, end - now);
+  const days = Math.floor(diff / 86400000); diff %= 86400000;
+  const hours = Math.floor(diff / 3600000); diff %= 3600000;
+  const minutes = Math.floor(diff / 60000);
+  return {days, hours, minutes, ended: end <= now};
+}
+function renderSubscriptionCountdownV49(){
+  ensureSubscriptionDataV49();
+  const box = document.getElementById('subscriptionCountdownBox');
+  if(!box || !currentUser) return;
+  if(!(currentUser.plan === 'VIP' || currentUser.plan === 'Creator')){
+    box.classList.add('hidden');
+    return;
+  }
+  const d = diffSubscriptionV49();
+  if(!d){
+    box.classList.add('hidden');
+    return;
+  }
+  box.classList.remove('hidden');
+  box.innerHTML = d.ended
+    ? `<strong>Assinatura expirada</strong><span>Renove seu plano ${currentUser.plan} para continuar com os benefícios.</span>`
+    : `<strong>Plano ${currentUser.plan} ativo</strong><span>Expira em ${d.days} dias, ${d.hours} horas e ${d.minutes} minutos.</span>`;
+}
+function bindSubscriptionCountdownV49(){
+  renderSubscriptionCountdownV49();
+  setInterval(renderSubscriptionCountdownV49, 60000);
+}
+document.addEventListener('DOMContentLoaded', bindSubscriptionCountdownV49);
+
+// Quando admin altera plano no painel, cria/atualiza validade da assinatura
+const originalToggleVipV49 = window.toggleVip;
+window.toggleVip = (id) => {
+  users = users.map(u => {
+    if(u.id !== id) return u;
+    const nextPlan = u.plan === 'VIP' ? 'Free' : 'VIP';
+    const end = new Date();
+    end.setDate(end.getDate() + 30);
+    return {
+      ...u,
+      plan: nextPlan,
+      subscriptionStartedAt: nextPlan === 'VIP' ? new Date().toISOString() : '',
+      subscriptionEndsAt: nextPlan === 'VIP' ? end.toISOString() : ''
+    };
+  });
+  const updated = users.find(u => currentUser && ((currentUser.id && u.id === currentUser.id) || (currentUser.email && u.email === currentUser.email)));
+  if(updated){ currentUser = updated; localStorage.setItem('am_user', JSON.stringify(currentUser)); }
+  saveUsers();
+  renderUsersTable();
+  renderSubscriptionCountdownV49();
+};

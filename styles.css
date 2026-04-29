@@ -1167,3 +1167,33 @@ body.dark-mode .created-protocol-number{
   color:#8fc6ff!important;
   border-color:rgba(97,168,255,.24)!important;
 }
+
+
+
+
+/* V49 — Assinatura com contagem regressiva */
+.subscription-countdown{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  background:linear-gradient(135deg,#fff4d6,#ffe8a3);
+  color:#5c3b00;
+  border:1px solid rgba(255,184,0,.45);
+  border-radius:22px;
+  padding:16px 20px;
+  margin:0 0 22px;
+  box-shadow:0 18px 44px rgba(255,184,0,.18);
+}
+.subscription-countdown strong{
+  font-size:16px;
+  font-weight:1000;
+}
+.subscription-countdown span{
+  font-weight:850;
+}
+body.dark-mode .subscription-countdown{
+  background:linear-gradient(135deg,rgba(255,184,0,.16),rgba(255,184,0,.08));
+  color:#ffd166;
+  border-color:rgba(255,209,102,.28);
+}
