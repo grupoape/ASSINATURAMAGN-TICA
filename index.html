@@ -106,6 +106,7 @@
         <div class="cards horizontal">
           <article class="prompt-card prompt-feature-card" id="featuredPromptCard" data-prompt-id="crie-imagem"><img src="prompt-cover.png" alt="Prompt Crie essa imagem"><span>FREE</span><h3>Crie essa imagem</h3><p>Prompt editorial hiper-realista para imagem premium.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
           <article class="prompt-card prompt-feature-card" id="celebrationPromptCard" data-prompt-id="celebracao"><img src="prompt-celebracao-cover.png" alt="Super Pack de Prompt Celebração"><span>FREE</span><h3>Super Pack Celebração</h3><p>Prompt comemorativo editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
+          <article class="prompt-card prompt-feature-card" id="harryPromptCard" data-prompt-id="harry-pack"><img src="prompt-harry-cover.png" alt="Super Pack Harry Potter 3"><span>FREE</span><h3>Super Pack Harry Potter 3</h3><p>Prompt mágico editorial hiper-realista.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
           <article class="prompt-card img3" data-prompt-id="color-grading"><span>VIP</span><h3>Color Grading</h3><p>Paletas e direção de arte profissional.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
           <article class="prompt-card img4" data-prompt-id="social-pack"><span>VIP</span><h3>Social Pack</h3><p>Posts, reels e carrosséis prontos.</p><div class="prompt-reactions"><button class="prompt-like" data-action="like">👍 <b>0</b></button><button class="prompt-dislike" data-action="dislike">👎 <b>0</b></button><button class="prompt-favorite" data-action="favorite">☆ <b>0</b></button></div></article>
         </div>
@@ -468,7 +469,6 @@
         <button class="client-nav active" data-client-tab="overview">🏠 Início</button>
         <button class="client-nav" data-client-tab="services">🧾 Serviços e Faturas</button>
         <button class="client-nav" data-client-tab="support">🎧 Support</button>
-        <button class="client-nav" data-client-tab="protocols">📂 Protocolos</button>
         <button class="client-nav" data-client-tab="payments">💳 2ª via - Pagamentos</button>
         <button id="backFromClientArea" class="client-back">← Voltar ao site</button>
       </aside>
@@ -516,24 +516,6 @@
             </select>
           </div>
           <div id="supportTicketsList" class="tickets-list"></div>
-        </section>
-
-
-        <section id="clientProtocols" class="client-tab">
-          <div class="client-section-head">
-            <h3>Protocolos</h3>
-            <span class="feed-pill">Histórico completo</span>
-          </div>
-          <div class="ticket-toolbar">
-            <input id="protocolSearchInput" type="search" placeholder="Buscar protocolo, cliente, assunto ou mensagem..." />
-            <select id="protocolStatusFilter">
-              <option value="all">Todos os status</option>
-              <option value="Aberto">Aberto</option>
-              <option value="Respondido">Respondido</option>
-              <option value="Encerrado">Encerrado</option>
-            </select>
-          </div>
-          <div id="protocolHistoryList" class="protocol-history-list"></div>
         </section>
 
         <section id="clientPayments" class="client-tab">
@@ -643,6 +625,23 @@
       </div>
       <textarea id="adminReplyText" class="hidden"></textarea>
       <button id="sendAdminReplyBtn" class="btn primary full" type="button">Enviar resposta</button>
+    </div>
+  </div>
+
+
+  <div id="harryPromptModal" class="modal hidden">
+    <div class="modal-card prompt-modal-card">
+      <button class="close" id="closeHarryPromptModal">×</button>
+      <div class="prompt-modal-grid">
+        <img src="prompt-harry-detail.png" alt="Detalhe do prompt Harry Potter 3" class="prompt-detail-img" id="harryPromptDetailImage" />
+        <div class="prompt-copy-area">
+          <p class="eyebrow">Prompt em destaque</p>
+          <h2>Super Pack Harry Potter 3</h2>
+          <p>Clique em copiar para usar o texto completo do prompt.</p>
+          <textarea id="harryPromptText" readonly>Crie uma fotografia hiper-realista e extremamente natural de uma pessoa com características físicas fiéis à imagem de referência, usando uniforme escolar de Hogwarts com aparência real e tecido convincente, incluindo camisa branca, gravata nas cores da casa, suéter ou colete de lã com microtextura visível e manto escuro com caimento natural. A câmera deve estar levemente acima da linha dos olhos, inclinada para baixo em ângulo íntimo e espontâneo, como um registro real capturado no momento, com profundidade de campo rasa e foco seletivo. Diferente de um close muito fechado, a imagem deve estar um pouco mais distanciada, mostrando melhor o tronco, parte do uniforme e a postura da pessoa. A pessoa estende o braço em direção à câmera segurando uma varinha, posicionada muito próxima da lente e propositalmente fora de foco no primeiro plano, criando um desfoque óptico realista e orgânico. Na ponta da varinha deve haver um brilho mágico visível, elegante e sutilmente intenso, com aparência física real, como uma luz encantada quente e viva, sem parecer efeito digital artificial. A iluminação deve simular luz solar real de fim de tarde, golden hour, com incidência lateral e contraluz suave, gerando highlights quentes e naturais. A luz atravessa o ambiente e interage fisicamente com a lente, produzindo flares ópticos reais, reflexos prismáticos sutis, dispersões cromáticas irregulares e halos de luz dourados e alaranjados visíveis no ar, como resultado de refração e difração da luz solar misturada ao brilho mágico da varinha. Esses flares não devem parecer gráficos ou artificiais, mas imperfeitos, orgânicos e distribuídos de forma aleatória, como em uma lente real sob luz intensa. A paleta de cores deve ser quente, com predominância de tons dourados, âmbar e laranja suave, equilibrados por verdes naturais no ambiente e pelos tons escuros, sóbrios e elegantes do uniforme, sem saturação excessiva e sem aparência digital. Os olhos devem ser expressivos, com brilho real refletindo a luz dourada, tornando o olhar marcante, vivo e cinematográfico. A pele deve manter textura real, com poros visíveis, microvariações de tom, rubor natural nas bochechas e leve translucidez nos áreas iluminadas, sem suavização artificial. O cabelo deve apresentar fios individualizados, leve frizz e desalinhamento natural, reagindo à luz de forma realista. O fundo deve permanecer suavemente desfocado, com sensação de profundidade real e bokeh orgânico, preservando a leitura de um ambiente externo ligado ao universo de Hogwarts, como pátio, jardim ou área de pedra antiga, sem roubar o protagonismo da cena. A imagem final deve transmitir a sensação de uma fotografia capturada por uma câmera profissional real, com comportamento óptico crível, iluminação física consistente, ausência total de HDR, zero aparência ilustrativa, estética cinematográfica analógica sutil, granulação extremamente fina e natural, atmosfera íntima, mágica, poética e verossímil, impossível de ser identificada como imagem gerada por IA.</textarea>
+          <button id="copyHarryPromptBtn" class="btn primary full">Copiar prompt</button>
+        </div>
+      </div>
     </div>
   </div>
 

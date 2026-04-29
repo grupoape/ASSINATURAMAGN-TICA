@@ -2279,3 +2279,244 @@ window.toggleVip = (id) => {
   renderUsersTable();
   renderSubscriptionCountdownV49();
 };
+
+
+
+
+// V50 — Admin VIP ilimitado + VIP/Creator com prazo mensal/anual
+function activatePlanV50(userId, plan='VIP', cycle='monthly'){
+  const now = new Date();
+  const end = new Date();
+  if(cycle === 'annual') end.setFullYear(end.getFullYear() + 1);
+  else end.setDate(end.getDate() + 30);
+
+  users = users.map(u => {
+    if(u.id !== userId) return u;
+    if(u.role === 'admin'){
+      return {
+        ...u,
+        plan:'VIP',
+        subscriptionCycle:'lifetime',
+        subscriptionStartedAt: now.toISOString(),
+        subscriptionEndsAt:'infinite'
+      };
+    }
+    return {
+      ...u,
+      plan,
+      subscriptionCycle: cycle,
+      subscriptionStartedAt: now.toISOString(),
+      subscriptionEndsAt: end.toISOString()
+    };
+  });
+
+  const updated = users.find(u => currentUser && (
+    (currentUser.id && u.id === currentUser.id) ||
+    (currentUser.email && u.email === currentUser.email) ||
+    (currentUser.username && u.username === currentUser.username)
+  ));
+  if(updated){
+    currentUser = updated;
+    localStorage.setItem('am_user', JSON.stringify(currentUser));
+  }
+  saveUsers();
+  if(typeof renderUsersTable === 'function') renderUsersTable();
+  renderSubscriptionCountdownV49();
+}
+
+function ensureSubscriptionDataV49(){
+  if(!currentUser) return;
+
+  if(currentUser.role === 'admin'){
+    currentUser.plan = 'VIP';
+    currentUser.subscriptionCycle = 'lifetime';
+    currentUser.subscriptionEndsAt = 'infinite';
+    users = users.map(u => {
+      const same = (currentUser.id && u.id === currentUser.id) || (currentUser.email && u.email === currentUser.email) || (currentUser.username && u.username === currentUser.username);
+      return same ? {...u, plan:'VIP', subscriptionCycle:'lifetime', subscriptionEndsAt:'infinite'} : u;
+    });
+    saveUsers();
+    localStorage.setItem('am_user', JSON.stringify(currentUser));
+    return;
+  }
+
+  if((currentUser.plan === 'VIP' || currentUser.plan === 'Creator') && !currentUser.subscriptionEndsAt){
+    const end = new Date();
+    if(currentUser.subscriptionCycle === 'annual') end.setFullYear(end.getFullYear() + 1);
+    else end.setDate(end.getDate() + 30);
+    currentUser.subscriptionCycle = currentUser.subscriptionCycle || 'monthly';
+    currentUser.subscriptionStartedAt = currentUser.subscriptionStartedAt || new Date().toISOString();
+    currentUser.subscriptionEndsAt = end.toISOString();
+    users = users.map(u => {
+      const same = (currentUser.id && u.id === currentUser.id) || (currentUser.email && u.email === currentUser.email) || (currentUser.username && u.username === currentUser.username);
+      return same ? {...u, subscriptionCycle: currentUser.subscriptionCycle, subscriptionStartedAt: currentUser.subscriptionStartedAt, subscriptionEndsAt: currentUser.subscriptionEndsAt} : u;
+    });
+    saveUsers();
+    localStorage.setItem('am_user', JSON.stringify(currentUser));
+  }
+}
+
+function diffSubscriptionV49(){
+  if(!currentUser || !currentUser.subscriptionEndsAt) return null;
+  if(currentUser.role === 'admin' || currentUser.subscriptionEndsAt === 'infinite'){
+    return {infinite:true, days:Infinity, hours:Infinity, minutes:Infinity, ended:false};
+  }
+  const end = new Date(currentUser.subscriptionEndsAt).getTime();
+  const now = Date.now();
+  let diff = Math.max(0, end - now);
+  const days = Math.floor(diff / 86400000); diff %= 86400000;
+  const hours = Math.floor(diff / 3600000); diff %= 3600000;
+  const minutes = Math.floor(diff / 60000);
+  return {days, hours, minutes, ended: end <= now, infinite:false};
+}
+
+function renderSubscriptionCountdownV49(){
+  ensureSubscriptionDataV49();
+  const box = document.getElementById('subscriptionCountdownBox');
+  if(!box || !currentUser) return;
+
+  if(currentUser.role === 'admin'){
+    box.classList.remove('hidden');
+    box.classList.add('infinite');
+    box.innerHTML = `<strong>Plano VIP ilimitado ∞</strong><span>Conta administrativa com acesso vitalício e sem expiração.</span>`;
+    return;
+  }
+
+  if(!(currentUser.plan === 'VIP' || currentUser.plan === 'Creator')){
+    box.classList.add('hidden');
+    return;
+  }
+
+  const d = diffSubscriptionV49();
+  if(!d){
+    box.classList.add('hidden');
+    return;
+  }
+
+  box.classList.remove('hidden');
+  box.classList.remove('infinite');
+  const cycleText = currentUser.subscriptionCycle === 'annual' ? 'anual' : 'mensal';
+  box.innerHTML = d.ended
+    ? `<strong>Assinatura expirada</strong><span>Renove seu plano ${currentUser.plan} para continuar com os benefícios.</span>`
+    : `<strong>Plano ${currentUser.plan} ${cycleText} ativo</strong><span>Expira em ${d.days} dias, ${d.hours} horas e ${d.minutes} minutos.</span>`;
+}
+
+// Ajuste do botão VIP do painel admin: alterna Free/VIP mensal por padrão; admin continua infinito.
+window.toggleVip = (id) => {
+  const user = users.find(u => u.id === id);
+  if(!user) return;
+  if(user.role === 'admin'){
+    activatePlanV50(id, 'VIP', 'lifetime');
+    return;
+  }
+  if(user.plan === 'VIP'){
+    users = users.map(u => u.id === id ? {...u, plan:'Free', subscriptionCycle:'', subscriptionStartedAt:'', subscriptionEndsAt:''} : u);
+    saveUsers();
+    if(typeof renderUsersTable === 'function') renderUsersTable();
+    renderSubscriptionCountdownV49();
+    return;
+  }
+  activatePlanV50(id, 'VIP', 'monthly');
+};
+
+
+
+
+// V51 — Correção definitiva: Protocolos não aparece para admin + 3º prompt Harry Potter
+function hideProtocolsForAdminV51(){
+  const protocolBtn = document.querySelector('.client-nav[data-client-tab="protocols"]');
+  const supportBtn = document.querySelector('.client-nav[data-client-tab="support"]');
+  const protocolSection = document.getElementById('clientProtocols');
+  if(currentUser && currentUser.role === 'admin'){
+    if(protocolBtn) protocolBtn.classList.add('force-hidden');
+    if(protocolSection) protocolSection.classList.remove('active');
+    if(protocolBtn && protocolBtn.classList.contains('active')){
+      protocolBtn.classList.remove('active');
+      supportBtn?.classList.add('active');
+      document.querySelectorAll('.client-tab').forEach(sec=>sec.classList.remove('active'));
+      document.getElementById('clientSupport')?.classList.add('active');
+    }
+  } else {
+    if(protocolBtn) protocolBtn.classList.remove('force-hidden');
+  }
+}
+const originalAdjustClientMenuForRoleV49_V51 = typeof adjustClientMenuForRoleV49 === 'function' ? adjustClientMenuForRoleV49 : null;
+adjustClientMenuForRoleV49 = function(){
+  if(originalAdjustClientMenuForRoleV49) originalAdjustClientMenuForRoleV49();
+  hideProtocolsForAdminV51();
+};
+const originalRenderClientAreaV51 = typeof renderClientArea === 'function' ? renderClientArea : null;
+renderClientArea = function(){
+  if(originalRenderClientAreaV51) originalRenderClientAreaV51();
+  hideProtocolsForAdminV51();
+};
+document.addEventListener('DOMContentLoaded', () => {
+  hideProtocolsForAdminV51();
+  document.querySelector('.client-nav[data-client-tab="protocols"]')?.addEventListener('click', e => {
+    if(currentUser && currentUser.role === 'admin'){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toast('Protocolos ficam disponíveis apenas para clientes.');
+      document.querySelector('.client-nav[data-client-tab="support"]')?.click();
+      return false;
+    }
+  }, true);
+});
+
+function bindHarryPromptV51(){
+  const card = document.querySelector('#harryPromptCard');
+  const modal = document.querySelector('#harryPromptModal');
+  const close = document.querySelector('#closeHarryPromptModal');
+  const copy = document.querySelector('#copyHarryPromptBtn');
+  const text = document.querySelector('#harryPromptText');
+  if(card && modal) card.onclick = () => modal.classList.remove('hidden');
+  if(close && modal) close.onclick = () => modal.classList.add('hidden');
+  if(modal) modal.addEventListener('click', e => { if(e.target.id === 'harryPromptModal') modal.classList.add('hidden'); });
+  if(copy && text){
+    copy.onclick = async () => {
+      try{ await navigator.clipboard.writeText(text.value); toast('Prompt copiado com sucesso.'); }
+      catch(e){ text.select(); document.execCommand('copy'); toast('Prompt copiado.'); }
+    };
+  }
+}
+document.addEventListener('DOMContentLoaded', bindHarryPromptV51);
+
+// Tradução extra do novo prompt
+const originalApplyExtraTranslationsV42_V51 = typeof applyExtraTranslationsV42 === 'function' ? applyExtraTranslationsV42 : null;
+if(originalApplyExtraTranslationsV42_V51){
+  applyExtraTranslationsV42 = function(lang){
+    originalApplyExtraTranslationsV42_V51(lang);
+    const data = {
+      pt:['Super Pack Harry Potter 3','Prompt mágico editorial hiper-realista.'],
+      en:['Harry Potter 3 Super Pack','Hyper-realistic magical editorial prompt.'],
+      es:['Super Pack Harry Potter 3','Prompt mágico editorial hiperrealista.'],
+      hi:['हैरी पॉटर 3 सुपर पैक','हाइपर-रियलिस्टिक मैजिकल एडिटोरियल प्रॉम्प्ट।']
+    }[lang] || ['Super Pack Harry Potter 3','Prompt mágico editorial hiper-realista.'];
+    const card = document.querySelector('#harryPromptCard');
+    if(card){
+      const h = card.querySelector('h3');
+      const p = card.querySelector('p');
+      if(h) h.textContent = data[0];
+      if(p) p.textContent = data[1];
+    }
+    const modalTitle = document.querySelector('#harryPromptModal .prompt-copy-area h2');
+    if(modalTitle) modalTitle.textContent = data[0];
+  };
+}
+
+
+
+
+// V52 — Protocolos removido do menu para todos
+function removeProtocolsMenuForEveryoneV52(){
+  document.querySelectorAll('.client-nav[data-client-tab="protocols"]').forEach(btn => btn.remove());
+  document.getElementById('clientProtocols')?.remove();
+}
+document.addEventListener('DOMContentLoaded', removeProtocolsMenuForEveryoneV52);
+const originalRenderClientAreaV52 = typeof renderClientArea === 'function' ? renderClientArea : null;
+if(originalRenderClientAreaV52){
+  renderClientArea = function(){
+    originalRenderClientAreaV52();
+    removeProtocolsMenuForEveryoneV52();
+  };
+}

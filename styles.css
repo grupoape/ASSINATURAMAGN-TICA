@@ -1197,3 +1197,35 @@ body.dark-mode .subscription-countdown{
   color:#ffd166;
   border-color:rgba(255,209,102,.28);
 }
+
+
+
+
+/* V50 — Destaque para plano infinito do admin */
+.subscription-countdown.infinite{
+  background:linear-gradient(135deg,#e7f1ff,#d8eaff)!important;
+  color:#164b93!important;
+  border-color:rgba(97,168,255,.38)!important;
+}
+.subscription-countdown.infinite strong::after{
+  content:"";
+}
+body.dark-mode .subscription-countdown.infinite{
+  background:linear-gradient(135deg,rgba(97,168,255,.20),rgba(97,168,255,.08))!important;
+  color:#8fc6ff!important;
+  border-color:rgba(97,168,255,.30)!important;
+}
+
+
+
+/* V51 */
+.force-hidden{display:none!important;}
+#harryPromptText{min-height:360px!important;}
+
+
+
+/* V52 — Protocolos oculto para todos */
+.client-nav[data-client-tab="protocols"],
+#clientProtocols{
+  display:none!important;
+}
