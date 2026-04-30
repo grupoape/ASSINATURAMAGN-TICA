@@ -3129,3 +3129,167 @@ document.addEventListener('DOMContentLoaded', () => {
     if(typeof v58RenderCommunityOnlyRealCreations === 'function') v58RenderCommunityOnlyRealCreations();
   }, 250);
 });
+
+
+// V60 — Admin premium + atendimento completo
+function v60IsAdmin(){
+  return !!(currentUser && currentUser.role === 'admin');
+}
+function v60AdminPremiumNotice(){
+  if(v60IsAdmin()){
+    toast('Acesso premium do admin liberado.');
+  }
+}
+
+// Admin sempre consegue copiar/abrir prompt VIP/pago.
+const v60OldV53HasVipPromptAccess = typeof v53HasVipPromptAccess === 'function' ? v53HasVipPromptAccess : null;
+if(v60OldV53HasVipPromptAccess){
+  v53HasVipPromptAccess = function(){
+    if(v60IsAdmin()) return true;
+    return v60OldV53HasVipPromptAccess();
+  };
+}
+const v60OldV53OpenVipPrompt = typeof v53OpenVipPrompt === 'function' ? v53OpenVipPrompt : null;
+if(v60OldV53OpenVipPrompt){
+  v53OpenVipPrompt = function(){
+    v60OldV53OpenVipPrompt();
+    if(v60IsAdmin()) v60AdminPremiumNotice();
+  };
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-plan="vip"], .prompt-card span').forEach(el => {
+    const card = el.closest('.prompt-card');
+    if(card && ((card.dataset.plan === 'vip') || (el.textContent || '').trim().toLowerCase() === 'vip')){
+      card.addEventListener('click', () => {
+        if(v60IsAdmin()) setTimeout(v60AdminPremiumNotice, 120);
+      }, true);
+    }
+  });
+});
+
+// Atendimento: admin pode editar, excluir e exportar por e-mail
+function v60TicketById(id){
+  return supportTickets.find(t => Number(t.id) === Number(id));
+}
+window.v60DeleteTicket = function(id){
+  if(!v60IsAdmin()) return toast('Apenas admin pode excluir atendimento.');
+  const t = v60TicketById(id);
+  if(!t) return toast('Atendimento não encontrado.');
+  if(!confirm(`Excluir atendimento ${t.protocol || ''}?`)) return;
+  supportTickets = supportTickets.filter(x => Number(x.id) !== Number(id));
+  saveSupportTickets();
+  renderClientArea();
+  if(V55_TICKET_CHAT_ID === id) document.getElementById('ticketChatModal')?.classList.add('hidden');
+  toast('Atendimento excluído.');
+};
+window.v60EditTicket = function(id){
+  if(!v60IsAdmin()) return toast('Apenas admin pode editar atendimento.');
+  if(typeof editTicketV46 === 'function') return editTicketV46(id);
+  toast('Editor indisponível.');
+};
+window.v60ExportTicketEmail = function(id){
+  if(!v60IsAdmin()) return toast('Apenas admin pode exportar atendimento.');
+  const t = v60TicketById(id);
+  if(!t) return toast('Atendimento não encontrado.');
+  const replies = (t.replies || []).map(r => `${r.by || 'Mensagem'} (${r.createdAt ? formatFeedDate(r.createdAt) : ''}):\n${r.text || ''}`).join('\n\n');
+  const body = encodeURIComponent(
+`Olá ${t.name || 'cliente'},
+
+Segue histórico do atendimento:
+
+Protocolo: ${t.protocol || 'Sem protocolo'}
+Status: ${t.status || 'Aberto'}
+Assunto: ${t.subject || '-'}
+
+Mensagem inicial:
+${t.message || ''}
+
+Histórico:
+${replies || 'Sem respostas adicionais.'}
+
+Atenciosamente,
+Assinatura Magnética`
+  );
+  const subject = encodeURIComponent(`Histórico do atendimento ${t.protocol || ''}`);
+  const email = encodeURIComponent(t.email || '');
+  if(!t.email) toast('Cliente sem e-mail cadastrado. Abrindo e-mail sem destinatário.');
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+};
+function v60AttendanceActions(t){
+  if(!v60IsAdmin()) return '';
+  return `<div class="attendance-actions">
+    <button class="ticket-action primary" onclick="v55OpenTicketChat(${t.id})">Chat</button>
+    <button class="ticket-action secondary" onclick="v60EditTicket(${t.id})">Editar</button>
+    <button class="ticket-action secondary" onclick="v60ExportTicketEmail(${t.id})">Exportar e-mail</button>
+    <button class="ticket-action danger" onclick="v60DeleteTicket(${t.id})">Excluir</button>
+  </div>`;
+}
+function v60RenderAttendances(){
+  const list = document.getElementById('attendanceList');
+  if(!list || !v60IsAdmin()) return;
+  const q = document.getElementById('attendanceSearchInput')?.value || '';
+  const status = document.getElementById('attendanceStatusFilter')?.value || 'all';
+  const tickets = (Array.isArray(supportTickets) ? supportTickets : []).filter(t => {
+    const statusOk = status === 'all' || t.status === status;
+    const hay = [t.protocol,t.name,t.email,t.subject,t.message,t.status].join(' ').toLowerCase();
+    return statusOk && (!q || hay.includes(q.toLowerCase()));
+  });
+  if(!tickets.length){
+    list.innerHTML = '<div class="client-card"><p>Nenhum atendimento encontrado.</p></div>';
+    return;
+  }
+  list.innerHTML = tickets.slice().reverse().map(t => {
+    const count = (t.replies || []).length;
+    const statusClass = typeof ticketStatusClassV46 === 'function' ? ticketStatusClassV46(t.status) : '';
+    return `<article class="attendance-card ${statusClass}">
+      <div class="attendance-info">
+        <div class="ticket-protocol">${safeText(t.protocol || 'Sem protocolo')}</div>
+        <strong>${safeText(t.subject || 'Atendimento')}</strong>
+        <span>${safeText(t.name || 'Cliente')} • ${safeText(t.email || '')}</span>
+        <small>${count} mensagem${count===1?'':'s'} • ${safeText(t.status || 'Aberto')}</small>
+      </div>
+      ${v60AttendanceActions(t)}
+    </article>`;
+  }).join('');
+}
+v55RenderAttendances = v60RenderAttendances;
+
+// Quando um cliente abre um ticket, ele aparece no menu Atendimentos e pode abrir chat popup.
+const v60OldPublishSupportTicket = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+if(v60OldPublishSupportTicket){
+  publishSupportTicket = function(){
+    const before = Array.isArray(supportTickets) ? supportTickets.length : 0;
+    v60OldPublishSupportTicket();
+    const after = Array.isArray(supportTickets) ? supportTickets.length : 0;
+    if(after > before){
+      const created = supportTickets[supportTickets.length - 1];
+      if(created){
+        toast(`Atendimento aberto: ${created.protocol || 'sem protocolo'}`);
+      }
+      if(typeof v55RenderAttendances === 'function') v55RenderAttendances();
+    }
+  };
+}
+
+// Ao abrir chat, admin também vê ferramentas no cabeçalho.
+const v60OldRenderTicketChat = typeof v55RenderTicketChat === 'function' ? v55RenderTicketChat : null;
+if(v60OldRenderTicketChat){
+  v55RenderTicketChat = function(){
+    v60OldRenderTicketChat();
+    const header = document.querySelector('.ticket-chat-header');
+    if(header && v60IsAdmin() && V55_TICKET_CHAT_ID){
+      let tools = header.querySelector('.ticket-chat-admin-tools');
+      if(!tools){
+        tools = document.createElement('div');
+        tools.className = 'ticket-chat-admin-tools';
+        header.appendChild(tools);
+      }
+      tools.innerHTML = `<button onclick="v60EditTicket(${V55_TICKET_CHAT_ID})">Editar</button><button onclick="v60ExportTicketEmail(${V55_TICKET_CHAT_ID})">Exportar</button><button onclick="v60DeleteTicket(${V55_TICKET_CHAT_ID})">Excluir</button>`;
+    }
+  };
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('attendanceSearchInput')?.addEventListener('input', v60RenderAttendances);
+  document.getElementById('attendanceStatusFilter')?.addEventListener('change', v60RenderAttendances);
+  setTimeout(v60RenderAttendances, 300);
+});

@@ -1705,3 +1705,50 @@ body.dark-mode .community-prompt-box pre{
 #promptMenu{
   margin-top:42px!important;
 }
+
+
+/* V60 — Atendimento admin completo */
+.attendance-card{
+  align-items:flex-start!important;
+}
+.attendance-info{
+  min-width:0;
+}
+.attendance-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  max-width:420px;
+}
+.ticket-chat-admin-tools{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.ticket-chat-admin-tools button{
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border-radius:999px;
+  padding:8px 11px;
+  font-weight:900;
+}
+.ticket-chat-admin-tools button:hover{
+  background:#61a8ff;
+}
+@media(max-width:760px){
+  .attendance-actions{
+    justify-content:flex-start;
+    margin-top:12px;
+    max-width:100%;
+  }
+  .attendance-actions .ticket-action{
+    width:auto;
+  }
+  .ticket-chat-admin-tools{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
