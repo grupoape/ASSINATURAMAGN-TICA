@@ -3963,3 +3963,133 @@ if(v67OldPersistTicketsMerged){
     if(V55_TICKET_CHAT_ID) v67RenderTicketChat();
   };
 }
+
+
+
+// V68 — ATENDIMENTO DEFINITIVO FIRESTORE
+let V68_DB=null,V68_FS=null,V68_READY=false,V68_UNSUB=null,V68_SELECTED_ID=null,V68_REC=null,V68_CHUNKS=[],V68_RECORDING=false;
+const V68_COLLECTION='assinaturaMagneticaTickets';
+
+function v68UserKey(){return currentUser?String(currentUser.email||currentUser.id||currentUser.username||currentUser.name||''):'';}
+function v68IsAdmin(){return !!(currentUser&&currentUser.role==='admin');}
+function v68CanAccess(t){return !!(t&&currentUser&&(v68IsAdmin()||String(t.owner)===v68UserKey()));}
+function v68Protocol(){return typeof generateTicketProtocolV46==='function'?generateTicketProtocolV46():'AM-'+Date.now();}
+function v68Normalize(t){
+  return {id:String(t.id||Date.now()),protocol:t.protocol||v68Protocol(),owner:t.owner||v68UserKey(),name:t.name||currentUser?.name||currentUser?.username||'Cliente',email:t.email||currentUser?.email||'',subject:t.subject||'Atendimento',message:t.message||'',messageHTML:t.messageHTML||'',customPrompt:!!t.customPrompt,budget:t.budget||null,status:t.status||'Aberto',replies:Array.isArray(t.replies)?t.replies:[],createdAt:t.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+}
+function v68SaveLocal(){localStorage.setItem('am_support_tickets_v43',JSON.stringify(supportTickets||[]));}
+function v68UpsertLocal(t){
+  t=v68Normalize(t);
+  const i=(supportTickets||[]).findIndex(x=>String(x.id)===String(t.id));
+  if(i>=0)supportTickets[i]={...supportTickets[i],...t};else supportTickets.push(t);
+  v68SaveLocal();return t;
+}
+async function v68Init(){
+  try{
+    const appMod=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+    const fsMod=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const app=appMod.getApps().length?appMod.getApp():appMod.initializeApp(V36_GOOGLE_FIREBASE_CONFIG);
+    V68_DB=fsMod.getFirestore(app);V68_FS=fsMod;V68_READY=true;
+    const col=fsMod.collection(V68_DB,V68_COLLECTION);
+    V68_UNSUB=fsMod.onSnapshot(col,snap=>{
+      const arr=[];snap.forEach(d=>arr.push({...d.data(),id:d.id}));
+      supportTickets=arr.sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));
+      v68SaveLocal();v68Refresh();
+    },err=>{console.warn('V68 listener',err);toast('Firestore precisa estar ativo para chat em tempo real.');});
+    setTimeout(v68PushLocalOnce,1000);
+  }catch(e){console.warn('V68 Firestore indisponível',e);V68_READY=false;}
+}
+async function v68CloudUpsert(t){
+  t=v68UpsertLocal(t);
+  if(V68_READY&&V68_FS&&V68_DB){
+    try{await V68_FS.setDoc(V68_FS.doc(V68_DB,V68_COLLECTION,String(t.id)),t,{merge:true});}
+    catch(e){console.warn('V68 salvar nuvem',e);toast('Falha ao salvar na nuvem. Verifique o Firestore.');}
+  }
+  v68Refresh();return t;
+}
+async function v68CloudDelete(id){
+  supportTickets=(supportTickets||[]).filter(t=>String(t.id)!==String(id));v68SaveLocal();
+  if(V68_READY&&V68_FS&&V68_DB){try{await V68_FS.deleteDoc(V68_FS.doc(V68_DB,V68_COLLECTION,String(id)));}catch(e){}}
+  if(String(V68_SELECTED_ID)===String(id)){document.getElementById('ticketChatModal')?.classList.add('hidden');V68_SELECTED_ID=null;V55_TICKET_CHAT_ID=null;}
+  v68Refresh();
+}
+async function v68PushLocalOnce(){
+  if(!V68_READY)return;
+  const local=JSON.parse(localStorage.getItem('am_support_tickets_v43')||'[]');
+  for(const t of local){if(t&&t.id) await v68CloudUpsert(t);}
+}
+function v68VisibleTickets(){const all=Array.isArray(supportTickets)?supportTickets:[];return v68IsAdmin()?all:all.filter(t=>String(t.owner)===v68UserKey());}
+function v68OpenTickets(){return v68VisibleTickets().filter(t=>t.status!=='Encerrado');}
+function v68Refresh(){
+  try{if(typeof renderClientArea==='function')renderClientArea();}catch(e){}
+  v68RenderAttendances();v68RenderFloating();if(V68_SELECTED_ID)v68RenderChat();
+}
+publishSupportTicket=async function(){
+  if(!currentUser){openAuth('login');return;}
+  if(typeof syncRichHiddenV47==='function')syncRichHiddenV47('ticketMessageEditor','ticketMessage');
+  const subject=(document.getElementById('ticketSubject')?.value||'').trim();
+  const messageHTML=typeof getRichEditorHTMLV47==='function'?getRichEditorHTMLV47('ticketMessageEditor'):(document.getElementById('ticketMessage')?.value||'');
+  const messageText=typeof richTextPlainV47==='function'?richTextPlainV47(messageHTML):messageHTML.replace(/<[^>]+>/g,'').trim();
+  const customPrompt=!!document.getElementById('ticketIsCustomPrompt')?.checked;
+  const budgetRaw=(document.getElementById('ticketBudget')?.value||'').trim();
+  if(!subject||!messageText)return toast('Preencha assunto e mensagem.');
+  const ticket=await v68CloudUpsert({id:Date.now(),protocol:v68Protocol(),owner:v68UserKey(),name:currentUser.name||currentUser.username||'Cliente',email:currentUser.email||'',subject,message:messageText,messageHTML,customPrompt,budget:budgetRaw?Number(budgetRaw):null,status:'Aberto',replies:[],createdAt:new Date().toISOString()});
+  document.getElementById('ticketSubject').value='';
+  const c=document.getElementById('ticketIsCustomPrompt');if(c)c.checked=false;
+  const b=document.getElementById('ticketBudget');if(b)b.value='';
+  if(typeof setRichEditorHTMLV47==='function')setRichEditorHTMLV47('ticketMessageEditor','');
+  const m=document.getElementById('ticketMessage');if(m)m.value='';
+  document.getElementById('supportTicketModal')?.classList.add('hidden');
+  if(typeof showTicketCreatedV47==='function')showTicketCreatedV47(ticket.protocol);
+  toast('Ticket aberto: '+ticket.protocol);v68OpenTicketChat(ticket.id);
+};
+function v68RenderAttendances(){
+  const list=document.getElementById('attendanceList');if(!list||!v68IsAdmin())return;
+  const q=(document.getElementById('attendanceSearchInput')?.value||'').toLowerCase();
+  const st=document.getElementById('attendanceStatusFilter')?.value||'all';
+  const tickets=v68VisibleTickets().filter(t=>(st==='all'||t.status===st)&&(!q||[t.protocol,t.name,t.email,t.subject,t.message,t.status].join(' ').toLowerCase().includes(q)));
+  if(!tickets.length){list.innerHTML='<div class="client-card"><p>Nenhum atendimento encontrado.</p></div>';return;}
+  list.innerHTML=tickets.slice().reverse().map(t=>`<article class="attendance-card"><div class="attendance-info"><div class="ticket-protocol">${safeText(t.protocol||'Sem protocolo')}</div><strong>${safeText(t.subject||'Atendimento')}</strong><span>${safeText(t.name||'Cliente')} • ${safeText(t.email||'')}</span><small>${(t.replies||[]).length} mensagem${(t.replies||[]).length===1?'':'s'} • ${safeText(t.status||'Aberto')}</small></div><div class="attendance-actions"><button class="ticket-action primary" onclick="v68OpenTicketChat('${t.id}')">Chat</button><button class="ticket-action secondary" onclick="v68ExportTicketEmail('${t.id}')">Exportar</button><button class="ticket-action danger" onclick="v68CloseTicket('${t.id}')">Encerrar</button><button class="ticket-action danger" onclick="v68DeleteTicket('${t.id}')">Excluir</button></div></article>`).join('');
+}
+window.v55RenderAttendances=v68RenderAttendances;window.v60RenderAttendances=v68RenderAttendances;
+function v68RenderFloating(){
+  const launcher=document.getElementById('supportFloatingLauncher'),count=document.getElementById('supportFloatingCount'),list=document.getElementById('supportFloatingList');
+  if(!launcher||!count||!list)return;launcher.classList.toggle('hidden',!v68IsAdmin());if(!v68IsAdmin())return;
+  const tickets=v68OpenTickets();count.textContent=tickets.length;count.classList.toggle('hidden',tickets.length===0);
+  list.innerHTML=tickets.length?tickets.slice().reverse().map(t=>`<button class="support-floating-item" onclick="v68OpenTicketChat('${t.id}')"><strong>${safeText(t.subject||'Atendimento')}</strong><span>${safeText(t.protocol||'')} • ${safeText(t.name||'Cliente')}</span><span>${t.customPrompt?'Prompt personalizado • R$ '+safeText(String(t.budget||0)):safeText(t.status||'Aberto')}</span></button>`).join(''):'<div class="support-floating-empty">Nenhum atendimento aberto.</div>';
+}
+window.v64RenderFloatingSupport=v68RenderFloating;
+function v68MessageHTML(m){return m.audio?`<audio controls src="${m.audio}"></audio>${m.text?`<p>${safeText(m.text)}</p>`:''}`:(m.html||safeText(m.text||''));}
+function v68RenderChat(){
+  const t=(supportTickets||[]).find(x=>String(x.id)===String(V68_SELECTED_ID||V55_TICKET_CHAT_ID));if(!t)return;
+  const title=document.getElementById('ticketChatTitle'),sub=document.getElementById('ticketChatSubtitle'),box=document.getElementById('ticketChatMessages');
+  if(title)title.textContent=t.subject||'Atendimento';if(sub)sub.textContent=`${t.protocol||'Sem protocolo'} • ${t.name||'Cliente'} • ${t.status||'Aberto'}`;
+  const prefix=t.customPrompt?`<p><strong>Prompt personalizado</strong> • Orçamento: R$ ${safeText(String(t.budget||0))}</p>`:'';
+  const messages=[{by:t.name||'Cliente',role:'client',html:prefix+(t.messageHTML||safeText(t.message||'')),createdAt:t.createdAt},...(t.replies||[])];
+  if(box){box.innerHTML=messages.map(m=>`<div class="chat-bubble ${m.role==='admin'?'admin':'client'}"><strong>${safeText(m.by||(m.role==='admin'?'Admin':'Cliente'))}</strong><div>${v68MessageHTML(m)}</div><span>${m.createdAt?formatFeedDate(m.createdAt):''}</span></div>`).join('');box.scrollTop=box.scrollHeight;}
+}
+window.v55RenderTicketChat=v68RenderChat;
+function v68OpenTicketChat(id){
+  if(!currentUser){openAuth('login');return;}
+  const t=(supportTickets||[]).find(x=>String(x.id)===String(id));if(!t)return toast('Atendimento não encontrado.');
+  if(!v68CanAccess(t))return toast('Você não pode acessar este atendimento.');
+  V68_SELECTED_ID=String(id);V55_TICKET_CHAT_ID=id;document.getElementById('ticketChatModal')?.classList.remove('hidden');v68RenderChat();
+}
+window.v68OpenTicketChat=v68OpenTicketChat;window.v55OpenTicketChat=v68OpenTicketChat;
+async function v68SendMessage(audio=''){
+  const t=(supportTickets||[]).find(x=>String(x.id)===String(V68_SELECTED_ID||V55_TICKET_CHAT_ID));if(!t)return toast('Selecione uma conversa.');
+  if(!v68CanAccess(t))return toast('Sem acesso a este atendimento.');
+  const input=document.getElementById('ticketChatText');const text=(input?.value||'').trim();if(!text&&!audio)return toast('Digite uma mensagem ou grave um áudio.');
+  const isAdmin=v68IsAdmin();const reply={id:Date.now(),by:isAdmin?'Admin':(currentUser.name||currentUser.username||'Cliente'),role:isAdmin?'admin':'client',text,audio,createdAt:new Date().toISOString()};
+  const updated=v68Normalize({...t,status:isAdmin?'Respondido':(t.status==='Encerrado'?'Aberto':t.status),replies:[...(t.replies||[]),reply]});
+  if(input)input.value='';await v68CloudUpsert(updated);V68_SELECTED_ID=String(updated.id);V55_TICKET_CHAT_ID=updated.id;v68RenderChat();toast('Mensagem enviada.');
+}
+window.v67SendTicketChatMessage=v68SendMessage;
+async function v68RecordAudio(){
+  const btn=document.getElementById('recordTicketAudioBtn');if(!navigator.mediaDevices?.getUserMedia)return toast('Gravação de áudio não suportada.');
+  if(!V68_RECORDING){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});V68_CHUNKS=[];V68_REC=new MediaRecorder(stream);V68_REC.ondataavailable=e=>{if(e.data?.size)V68_CHUNKS.push(e.data)};V68_REC.onstop=()=>{const blob=new Blob(V68_CHUNKS,{type:'audio/webm'});const reader=new FileReader();reader.onloadend=()=>{v68SendMessage(reader.result);stream.getTracks().forEach(t=>t.stop())};reader.readAsDataURL(blob)};V68_REC.start();V68_RECORDING=true;btn?.classList.add('recording');toast('Gravando áudio...');}catch(e){toast('Não foi possível acessar o microfone.');}}else{V68_REC?.stop();V68_RECORDING=false;btn?.classList.remove('recording');}
+}
+window.v68CloseTicket=async id=>{const t=(supportTickets||[]).find(x=>String(x.id)===String(id));if(t&&v68IsAdmin())await v68CloudUpsert({...t,status:'Encerrado'});};
+window.v68DeleteTicket=async id=>{if(!v68IsAdmin())return toast('Apenas admin pode excluir.');if(confirm('Excluir este atendimento?'))await v68CloudDelete(id);};
+window.v68ExportTicketEmail=function(id){const t=(supportTickets||[]).find(x=>String(x.id)===String(id));if(!t||!v68IsAdmin())return;const replies=(t.replies||[]).map(r=>`${r.by} (${r.createdAt?formatFeedDate(r.createdAt):''}): ${r.text||'[áudio]'}`).join('\n\n');const body=encodeURIComponent(`Histórico do atendimento\n\nProtocolo: ${t.protocol}\nCliente: ${t.name}\nE-mail: ${t.email}\nAssunto: ${t.subject}\n\nMensagem inicial:\n${t.message}\n\nRespostas:\n${replies||'Sem respostas.'}`);window.location.href=`mailto:${encodeURIComponent(t.email||'')}?subject=${encodeURIComponent('Histórico do atendimento '+(t.protocol||''))}&body=${body}`;};
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(v68Init,700);document.getElementById('sendTicketChatMessage')?.addEventListener('click',()=>v68SendMessage());document.getElementById('ticketChatText')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();v68SendMessage();}});document.getElementById('recordTicketAudioBtn')?.addEventListener('click',v68RecordAudio);document.getElementById('attendanceSearchInput')?.addEventListener('input',v68RenderAttendances);document.getElementById('attendanceStatusFilter')?.addEventListener('change',v68RenderAttendances);});
