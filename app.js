@@ -3293,3 +3293,94 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('attendanceStatusFilter')?.addEventListener('change', v60RenderAttendances);
   setTimeout(v60RenderAttendances, 300);
 });
+
+
+
+
+// V63 — patch Codex aplicado: prompt personalizado, orçamento e sync local
+(function(){
+  const oldPublish = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+  if(oldPublish){
+    publishSupportTicket = function(){
+      if(!currentUser){ openAuth('login'); return; }
+      if(typeof syncRichHiddenV47 === 'function') syncRichHiddenV47('ticketMessageEditor','ticketMessage');
+      const subject = (document.getElementById('ticketSubject')?.value || '').trim();
+      const messageHTML = typeof getRichEditorHTMLV47 === 'function' ? getRichEditorHTMLV47('ticketMessageEditor') : (document.getElementById('ticketMessage')?.value || '');
+      const messageText = typeof richTextPlainV47 === 'function' ? richTextPlainV47(messageHTML) : messageHTML.replace(/<[^>]+>/g,'').trim();
+      const customPrompt = !!document.getElementById('ticketIsCustomPrompt')?.checked;
+      const budgetRaw = (document.getElementById('ticketBudget')?.value || '').trim();
+      const budget = budgetRaw ? Number(budgetRaw) : null;
+      if(!subject || !messageText) return toast('Preencha assunto e mensagem.');
+      const ticket = {
+        id: Date.now(),
+        protocol: typeof generateTicketProtocolV46 === 'function' ? generateTicketProtocolV46() : ('AM-' + Date.now()),
+        owner: currentUserKey(),
+        name: currentUser.name || currentUser.username || 'Usuário',
+        email: currentUser.email || '',
+        subject,
+        message: messageText,
+        messageHTML,
+        customPrompt,
+        budget,
+        status:'Aberto',
+        replies:[],
+        createdAt:new Date().toISOString(),
+        updatedAt:new Date().toISOString()
+      };
+      supportTickets.push(ticket);
+      saveSupportTickets();
+      document.getElementById('ticketSubject').value = '';
+      const customField = document.getElementById('ticketIsCustomPrompt'); if(customField) customField.checked = false;
+      const budgetField = document.getElementById('ticketBudget'); if(budgetField) budgetField.value = '';
+      if(typeof setRichEditorHTMLV47 === 'function') setRichEditorHTMLV47('ticketMessageEditor','');
+      const msg = document.getElementById('ticketMessage'); if(msg) msg.value = '';
+      document.getElementById('supportTicketModal')?.classList.add('hidden');
+      if(typeof renderClientArea === 'function') renderClientArea();
+      if(typeof showTicketCreatedV47 === 'function') showTicketCreatedV47(ticket.protocol);
+      toast(`Ticket aberto. Protocolo: ${ticket.protocol}`);
+      if(typeof pushNotificationV45 === 'function'){
+        pushNotificationV45({
+          role:'admin',
+          title:'Novo ticket aberto',
+          message:`${ticket.protocol} • ${ticket.name}: ${ticket.subject}${ticket.customPrompt ? ` • Orçamento: R$ ${ticket.budget || 0}` : ''}`,
+          type:'ticket',
+          link:'client-area'
+        });
+      }
+    };
+  }
+
+  const oldRenderChat = typeof v55RenderTicketChat === 'function' ? v55RenderTicketChat : null;
+  if(oldRenderChat){
+    v55RenderTicketChat = function(){
+      const ticket = supportTickets.find(t => t.id === V55_TICKET_CHAT_ID);
+      if(!ticket) return oldRenderChat();
+      const originalHTML = ticket.messageHTML || '';
+      const prefix = ticket.customPrompt ? `<p><strong>Prompt personalizado</strong> • Orçamento: R$ ${safeText(String(ticket.budget || 0))}</p>` : '';
+      ticket.messageHTML = prefix + originalHTML;
+      oldRenderChat();
+      ticket.messageHTML = originalHTML;
+    };
+  }
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === 'am_prompt_reactions_v28' && e.newValue){
+      try{
+        const data = JSON.parse(e.newValue);
+        localStorage.setItem('am_prompt_reactions_v28', JSON.stringify(data));
+        if(typeof updatePromptReactionUI === 'function') updatePromptReactionUI();
+        if(typeof v54FilterPromptMenu === 'function'){
+          const active = document.querySelector('.prompt-menu-filter.active')?.dataset.filter || 'all';
+          v54FilterPromptMenu(active);
+        }
+      }catch(_e){}
+    }
+    if(e.key === 'am_support_tickets_v43' && e.newValue){
+      try{
+        supportTickets = JSON.parse(e.newValue) || [];
+        if(typeof renderClientArea === 'function') renderClientArea();
+        if(typeof V55_TICKET_CHAT_ID !== 'undefined' && V55_TICKET_CHAT_ID && typeof v55RenderTicketChat === 'function') v55RenderTicketChat();
+      }catch(_e){}
+    }
+  });
+})();

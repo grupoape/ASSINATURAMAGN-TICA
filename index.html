@@ -570,6 +570,11 @@
       <h2>Abrir Ticket</h2>
       <label>Assunto</label>
       <input id="ticketSubject" type="text" placeholder="Digite o assunto" />
+      <label class="ticket-checkline"><input id="ticketIsCustomPrompt" type="checkbox" /> Quero personalizar um prompt</label>
+      <div class="ticket-budget-row">
+        <label for="ticketBudget">Orçamento (R$)</label>
+        <input id="ticketBudget" type="number" min="0" step="10" placeholder="Ex: 250" />
+      </div>
       <label>Mensagem</label>
       <div class="rich-editor" data-target="ticketMessageEditor">
         <div class="rich-toolbar">

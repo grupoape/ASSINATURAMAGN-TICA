@@ -1804,3 +1804,25 @@ body.dark-mode .community-prompt-box pre{
 }
 .discord-icon{width:22px;height:22px}
 body.dark-mode .discord-link{background:rgba(255,255,255,.06)}
+
+
+
+
+/* V63 — patch Codex: refinamento visual + chat fixo inferior direito + orçamento de prompt */
+.welcome-screen::after{animation:welcomeAuraPulse 4.2s ease-in-out infinite}
+.welcome-center{animation:welcomeRisePro .9s cubic-bezier(.2,.7,.15,1) both}
+.welcome-btn{position:relative;overflow:hidden}
+.welcome-btn::after{content:"";position:absolute;inset:0;transform:translateX(-120%) skewX(-15deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:welcomeSweep 3.2s ease-in-out infinite}
+@keyframes welcomeRisePro{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes welcomeAuraPulse{0%,100%{opacity:.92}50%{opacity:.68}}
+@keyframes welcomeSweep{to{transform:translateX(130%) skewX(-15deg)}}
+
+#ticketChatModal{background:transparent!important;backdrop-filter:none!important;place-items:end!important;padding:0 24px 22px 0!important}
+.ticket-chat-card{width:min(420px,calc(100vw - 24px));height:min(70vh,660px);border-radius:24px 24px 10px 24px}
+.ticket-checkline{display:flex!important;align-items:center;gap:8px;font-size:14px;font-weight:850;margin:10px 0}
+.ticket-checkline input{width:auto!important}
+.ticket-budget-row{display:grid;gap:8px;margin-bottom:12px}
+.ticket-budget-row label{margin:0!important;color:#475467;font-weight:800}
+.ticket-budget-row input{width:100%;border:1px solid #dfe3eb;background:#fff;border-radius:14px;padding:12px;font-size:15px}
+body.dark-mode .ticket-budget-row input{background:#07101f!important;color:#f8fbff!important;border-color:rgba(143,198,255,.18)!important}
+body.dark-mode .ticket-budget-row label{color:#d7e3f4!important}
