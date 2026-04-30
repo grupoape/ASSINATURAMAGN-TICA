@@ -3662,3 +3662,117 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(v65PullTicketsFromCloud, 5000);
   setInterval(v65PushTicketsToCloud, 10000);
 });
+
+
+
+
+// V66 — Reações globais reais via Firebase Firestore
+// Corrige totais diferentes entre contas/computadores para like, dislike e favoritos.
+let V66_REACTIONS_FIRESTORE = null;
+let V66_REACTIONS_MOD = null;
+let V66_REACTIONS_READY = false;
+let V66_REACTIONS_SYNCING = false;
+const V66_REACTIONS_DOC = ['assinaturaMagnetica', 'promptReactionsRealtime'];
+
+function v66NormalizeReactionItem(item){
+  item = item || {};
+  return {
+    likes: Array.isArray(item.likes) ? item.likes : [],
+    dislikes: Array.isArray(item.dislikes) ? item.dislikes : [],
+    favorites: Array.isArray(item.favorites) ? item.favorites : []
+  };
+}
+function v66MergeReactions(localData, cloudData){
+  const merged = {};
+  const keys = new Set([...Object.keys(localData || {}), ...Object.keys(cloudData || {})]);
+  keys.forEach(k => {
+    const l = v66NormalizeReactionItem((localData || {})[k]);
+    const c = v66NormalizeReactionItem((cloudData || {})[k]);
+    merged[k] = {
+      likes: Array.from(new Set([...c.likes, ...l.likes])),
+      dislikes: Array.from(new Set([...c.dislikes, ...l.dislikes])),
+      favorites: Array.from(new Set([...c.favorites, ...l.favorites]))
+    };
+  });
+  return merged;
+}
+function v66LocalReactions(){
+  try{ return JSON.parse(localStorage.getItem('am_prompt_reactions_v28') || '{}') || {}; }
+  catch(e){ return {}; }
+}
+function v66SetLocalReactions(data){
+  localStorage.setItem('am_prompt_reactions_v28', JSON.stringify(data || {}));
+  if(typeof updatePromptReactionUI === 'function') updatePromptReactionUI();
+  if(typeof v54FilterPromptMenu === 'function'){
+    const active = document.querySelector('.prompt-menu-filter.active')?.dataset.filter || 'all';
+    v54FilterPromptMenu(active);
+  }
+}
+async function v66InitReactionsFirestore(){
+  try{
+    if(!V36_GOOGLE_FIREBASE_CONFIG || !V36_GOOGLE_FIREBASE_CONFIG.apiKey) return false;
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    V66_REACTIONS_MOD = fsMod;
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(V36_GOOGLE_FIREBASE_CONFIG);
+    V66_REACTIONS_FIRESTORE = fsMod.getFirestore(app);
+    V66_REACTIONS_READY = true;
+
+    const ref = fsMod.doc(V66_REACTIONS_FIRESTORE, ...V66_REACTIONS_DOC);
+
+    fsMod.onSnapshot(ref, snap => {
+      if(!snap.exists()) return;
+      const cloud = snap.data().reactions || {};
+      const merged = v66MergeReactions(v66LocalReactions(), cloud);
+      v66SetLocalReactions(merged);
+    }, err => {
+      console.warn('V66 reações Firestore falhou:', err);
+      V66_REACTIONS_READY = false;
+    });
+
+    setTimeout(v66PushReactionsToCloud, 1200);
+    return true;
+  }catch(err){
+    console.warn('V66 Firestore reações indisponível:', err);
+    V66_REACTIONS_READY = false;
+    return false;
+  }
+}
+async function v66PushReactionsToCloud(){
+  if(!V66_REACTIONS_READY || !V66_REACTIONS_FIRESTORE || !V66_REACTIONS_MOD || V66_REACTIONS_SYNCING) return;
+  V66_REACTIONS_SYNCING = true;
+  try{
+    const ref = V66_REACTIONS_MOD.doc(V66_REACTIONS_FIRESTORE, ...V66_REACTIONS_DOC);
+    const snap = await V66_REACTIONS_MOD.getDoc(ref);
+    const cloud = snap.exists() ? (snap.data().reactions || {}) : {};
+    const merged = v66MergeReactions(v66LocalReactions(), cloud);
+    await V66_REACTIONS_MOD.setDoc(ref, {reactions: merged, updatedAt: Date.now()}, {merge:true});
+    v66SetLocalReactions(merged);
+  }catch(err){
+    console.warn('V66 push reações falhou:', err);
+  }finally{
+    V66_REACTIONS_SYNCING = false;
+  }
+}
+
+// Sobrescreve o salvamento padrão das reações para subir para Firestore
+savePromptReactions = function(data){
+  const current = v66LocalReactions();
+  const merged = v66MergeReactions(current, data || {});
+  v66SetLocalReactions(merged);
+  setTimeout(v66PushReactionsToCloud, 120);
+};
+
+// Reforço: depois de reagir, puxa/envia para nuvem
+const v66OldReactPrompt = typeof reactPrompt === 'function' ? reactPrompt : null;
+if(v66OldReactPrompt){
+  reactPrompt = function(id, action){
+    v66OldReactPrompt(id, action);
+    setTimeout(v66PushReactionsToCloud, 150);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(v66InitReactionsFirestore, 900);
+  setInterval(v66PushReactionsToCloud, 8000);
+});
