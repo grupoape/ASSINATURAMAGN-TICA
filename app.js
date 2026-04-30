@@ -3776,3 +3776,190 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(v66InitReactionsFirestore, 900);
   setInterval(v66PushReactionsToCloud, 8000);
 });
+
+
+
+
+// V67 — Chat atendimento corrigido + seleção de conversa + áudio
+let V67_MEDIA_RECORDER = null;
+let V67_AUDIO_CHUNKS = [];
+let V67_RECORDING = false;
+
+function v67TicketById(id){
+  return (supportTickets || []).find(t => Number(t.id) === Number(id));
+}
+function v67CurrentTicket(){
+  return v67TicketById(V55_TICKET_CHAT_ID);
+}
+function v67CanAccessTicket(ticket){
+  if(!ticket || !currentUser) return false;
+  if(currentUser.role === 'admin') return true;
+  return String(ticket.owner) === String(currentUserKey());
+}
+function v67SaveAndSyncTickets(){
+  localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets || []));
+  if(typeof v65PushTicketsToCloud === 'function') setTimeout(v65PushTicketsToCloud, 100);
+  if(typeof v64RenderFloatingSupport === 'function') v64RenderFloatingSupport();
+  if(typeof v55RenderAttendances === 'function') v55RenderAttendances();
+  if(typeof v60RenderAttendances === 'function') v60RenderAttendances();
+  if(typeof renderClientArea === 'function') {
+    try { renderClientArea(); } catch(e){}
+  }
+}
+function v67MessageHTML(message){
+  if(message.audio){
+    return `<audio controls src="${message.audio}"></audio>${message.text ? `<p>${safeText(message.text)}</p>` : ''}`;
+  }
+  return message.html || safeText(message.text || '');
+}
+function v67RenderTicketChat(){
+  const ticket = v67CurrentTicket();
+  if(!ticket) return;
+  const title = document.getElementById('ticketChatTitle');
+  const sub = document.getElementById('ticketChatSubtitle');
+  const box = document.getElementById('ticketChatMessages');
+  if(title) title.textContent = ticket.subject || 'Atendimento';
+  if(sub) sub.textContent = `${ticket.protocol || 'Sem protocolo'} • ${ticket.name || 'Cliente'} • ${ticket.status || 'Aberto'}`;
+
+  const initialPrefix = ticket.customPrompt ? `<p><strong>Prompt personalizado</strong> • Orçamento: R$ ${safeText(String(ticket.budget || 0))}</p>` : '';
+  const messages = [
+    {by: ticket.name || 'Cliente', role:'client', text: ticket.message || '', html: initialPrefix + (ticket.messageHTML || safeText(ticket.message || '')), createdAt: ticket.createdAt},
+    ...(ticket.replies || []).map(r => ({...r, role: String(r.role || '').trim() || (String(r.by || '').toLowerCase().includes('admin') ? 'admin' : 'client')}))
+  ];
+
+  if(box){
+    box.innerHTML = messages.map(m => `<div class="chat-bubble ${m.role === 'admin' ? 'admin' : 'client'}">
+      <strong>${safeText(m.by || (m.role === 'admin' ? 'Admin' : 'Cliente'))}</strong>
+      <div>${v67MessageHTML(m)}</div>
+      <span>${m.createdAt ? formatFeedDate(m.createdAt) : ''}</span>
+    </div>`).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+}
+window.v55RenderTicketChat = v67RenderTicketChat;
+
+window.v55OpenTicketChat = function(id){
+  if(!currentUser){ openAuth('login'); return; }
+  const ticket = v67TicketById(id);
+  if(!ticket) return toast('Atendimento não encontrado.');
+  if(!v67CanAccessTicket(ticket)) return toast('Você não pode acessar este atendimento.');
+  V55_TICKET_CHAT_ID = Number(id);
+  document.getElementById('ticketChatModal')?.classList.remove('hidden');
+  v67RenderTicketChat();
+};
+
+function v67SendTicketChatMessage(audioData=''){
+  const ticket = v67CurrentTicket();
+  if(!ticket || !currentUser) return toast('Selecione um atendimento para responder.');
+  if(!v67CanAccessTicket(ticket)) return toast('Você não pode responder este atendimento.');
+  const input = document.getElementById('ticketChatText');
+  const text = (input?.value || '').trim();
+  if(!text && !audioData) return toast('Digite uma mensagem ou grave um áudio.');
+
+  const isAdmin = currentUser.role === 'admin';
+  const reply = {
+    id: Date.now(),
+    by: isAdmin ? 'Admin' : (currentUser.name || currentUser.username || 'Cliente'),
+    role: isAdmin ? 'admin' : 'client',
+    text,
+    audio: audioData || '',
+    createdAt: new Date().toISOString()
+  };
+
+  supportTickets = (supportTickets || []).map(t => {
+    if(Number(t.id) !== Number(ticket.id)) return t;
+    const replies = Array.isArray(t.replies) ? t.replies : [];
+    return {
+      ...t,
+      status: isAdmin ? 'Respondido' : (t.status === 'Encerrado' ? 'Aberto' : t.status || 'Aberto'),
+      updatedAt: new Date().toISOString(),
+      replies: [...replies, reply]
+    };
+  });
+
+  if(input) input.value = '';
+  v67SaveAndSyncTickets();
+  v67RenderTicketChat();
+
+  if(typeof pushNotificationV45 === 'function'){
+    if(isAdmin){
+      pushNotificationV45({to: ticket.owner, title:'Nova resposta do suporte', message:`${ticket.protocol || ''} • ${ticket.subject || 'Atendimento'}`, type:'ticket-reply', link:'client-area'});
+    } else {
+      pushNotificationV45({role:'admin', title:'Nova mensagem do cliente', message:`${ticket.protocol || ''} • ${ticket.subject || 'Atendimento'}`, type:'ticket', link:'client-area'});
+    }
+  }
+  toast('Mensagem enviada.');
+}
+window.v67SendTicketChatMessage = v67SendTicketChatMessage;
+
+async function v67ToggleAudioRecording(){
+  const btn = document.getElementById('recordTicketAudioBtn');
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    return toast('Gravação de áudio não suportada neste navegador.');
+  }
+
+  if(!V67_RECORDING){
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      V67_AUDIO_CHUNKS = [];
+      V67_MEDIA_RECORDER = new MediaRecorder(stream);
+      V67_MEDIA_RECORDER.ondataavailable = e => { if(e.data && e.data.size) V67_AUDIO_CHUNKS.push(e.data); };
+      V67_MEDIA_RECORDER.onstop = () => {
+        const blob = new Blob(V67_AUDIO_CHUNKS, {type:'audio/webm'});
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          v67SendTicketChatMessage(reader.result);
+          stream.getTracks().forEach(track => track.stop());
+        };
+        reader.readAsDataURL(blob);
+      };
+      V67_MEDIA_RECORDER.start();
+      V67_RECORDING = true;
+      if(btn) btn.classList.add('recording');
+      toast('Gravando áudio...');
+    }catch(err){
+      console.error(err);
+      toast('Não foi possível acessar o microfone.');
+    }
+  } else {
+    try{
+      V67_MEDIA_RECORDER?.stop();
+      V67_RECORDING = false;
+      if(btn) btn.classList.remove('recording');
+      toast('Áudio enviado.');
+    }catch(err){
+      console.error(err);
+      toast('Erro ao finalizar gravação.');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sendBtn = document.getElementById('sendTicketChatMessage');
+  const input = document.getElementById('ticketChatText');
+  const audioBtn = document.getElementById('recordTicketAudioBtn');
+
+  if(sendBtn){
+    sendBtn.onclick = () => v67SendTicketChatMessage();
+  }
+  if(input){
+    input.onkeydown = e => {
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        v67SendTicketChatMessage();
+      }
+    };
+  }
+  if(audioBtn){
+    audioBtn.onclick = v67ToggleAudioRecording;
+  }
+});
+
+// Ao puxar tickets da nuvem, atualiza chat aberto também
+const v67OldPersistTicketsMerged = typeof v65PersistTicketsMerged === 'function' ? v65PersistTicketsMerged : null;
+if(v67OldPersistTicketsMerged){
+  v65PersistTicketsMerged = function(nextTickets, shouldRender=true){
+    v67OldPersistTicketsMerged(nextTickets, shouldRender);
+    if(V55_TICKET_CHAT_ID) v67RenderTicketChat();
+  };
+}

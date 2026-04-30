@@ -2031,3 +2031,40 @@ body.dark-mode .support-floating-item{
 }
 body.dark-mode .support-floating-item strong{color:#f8fbff!important}
 body.dark-mode .support-floating-item span{color:#a9b4c4!important}
+
+
+
+
+/* V67 — Áudio no chat de atendimento */
+.ticket-audio-btn{
+  width:48px;
+  min-width:48px;
+  height:48px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:#fff;
+  color:#347ee8;
+  font-size:20px;
+  display:grid;
+  place-items:center;
+  box-shadow:0 10px 24px rgba(0,0,0,.08);
+}
+.ticket-audio-btn.recording{
+  background:#ff3b5f!important;
+  color:#fff!important;
+  animation:v67PulseRec 1s ease-in-out infinite;
+}
+@keyframes v67PulseRec{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+}
+.chat-bubble audio{
+  width:100%;
+  max-width:260px;
+  margin-top:6px;
+}
+body.dark-mode .ticket-audio-btn{
+  background:#07101f!important;
+  color:#8fc6ff!important;
+  border-color:rgba(143,198,255,.18)!important;
+}
