@@ -1752,3 +1752,55 @@ body.dark-mode .community-prompt-box pre{
     justify-content:flex-start;
   }
 }
+
+
+/* V61 — Nova logo premium oficial */
+.rail-logo{
+  background:transparent!important;
+  border:0!important;
+  overflow:hidden!important;
+  border-radius:50%!important;
+}
+.rail-logo img{
+  width:48px!important;
+  height:48px!important;
+  object-fit:cover!important;
+  border-radius:50%!important;
+  display:block!important;
+  filter:drop-shadow(0 10px 22px rgba(0,153,255,.38))!important;
+}
+.brand::before{
+  content:""!important;
+  display:inline-block!important;
+  width:28px!important;
+  height:28px!important;
+  margin-right:10px!important;
+  vertical-align:-7px!important;
+  background:url("am-logo-premium.png") center/cover no-repeat!important;
+  border-radius:50%!important;
+  filter:drop-shadow(0 8px 18px rgba(0,153,255,.32))!important;
+}
+.account-avatar:not(:has(img)){
+  background:url("am-logo-premium.png") center/cover no-repeat!important;
+  color:transparent!important;
+}
+
+
+/* V62 Discord button */
+.discord-link{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:42px;height:42px;border-radius:50%;
+ border:1px solid rgba(255,255,255,.10);
+ background:rgba(255,255,255,.04);
+ color:#8ea1e1;text-decoration:none;
+ transition:.2s ease;
+ margin:0 8px;
+}
+.discord-link:hover{
+ transform:translateY(-2px);
+ background:#5865F2;
+ color:#fff;
+ box-shadow:0 10px 24px rgba(88,101,242,.35);
+}
+.discord-icon{width:22px;height:22px}
+body.dark-mode .discord-link{background:rgba(255,255,255,.06)}
