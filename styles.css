@@ -2035,36 +2035,42 @@ body.dark-mode .support-floating-item span{color:#a9b4c4!important}
 
 
 
-/* V67 — Áudio no chat de atendimento */
-.ticket-audio-btn{
-  width:48px;
-  min-width:48px;
-  height:48px;
-  border-radius:50%;
-  border:1px solid var(--line);
-  background:#fff;
-  color:#347ee8;
-  font-size:20px;
-  display:grid;
-  place-items:center;
-  box-shadow:0 10px 24px rgba(0,0,0,.08);
+/* V70 — Recuperação: popups com scroll interno sem mexer no atendimento */
+body.modal-open{
+  overflow:hidden!important;
+  height:100vh!important;
 }
-.ticket-audio-btn.recording{
-  background:#ff3b5f!important;
-  color:#fff!important;
-  animation:v67PulseRec 1s ease-in-out infinite;
+.modal{
+  overflow:hidden!important;
 }
-@keyframes v67PulseRec{
-  0%,100%{transform:scale(1)}
-  50%{transform:scale(1.08)}
+.modal-card,
+.topic-modal-card,
+.account-modal-card,
+.prompt-modal-card,
+.pix-modal-card{
+  max-height:calc(100vh - 36px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  scrollbar-width:thin;
 }
-.chat-bubble audio{
-  width:100%;
-  max-width:260px;
-  margin-top:6px;
+.topic-modal-card{
+  width:min(760px,calc(100vw - 28px))!important;
+  padding:28px!important;
+  border-radius:30px!important;
 }
-body.dark-mode .ticket-audio-btn{
-  background:#07101f!important;
-  color:#8fc6ff!important;
-  border-color:rgba(143,198,255,.18)!important;
+.topic-modal-card h2{
+  font-size:30px!important;
+  letter-spacing:-.04em!important;
+  margin:2px 0 18px!important;
+}
+.topic-modal-card textarea{
+  min-height:120px!important;
+}
+.plans-modal-card,
+.plans-popup-card,
+#plansModal .modal-card{
+  width:min(1040px,calc(100vw - 28px))!important;
+  max-height:calc(100vh - 36px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
 }
