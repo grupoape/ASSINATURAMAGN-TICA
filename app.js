@@ -3384,3 +3384,281 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 })();
+
+
+
+
+// V64 — Atendimento visível: chat automático + botão flutuante admin + realtime local reforçado
+(function(){
+  function v64IsAdmin(){
+    return !!(currentUser && currentUser.role === 'admin');
+  }
+
+  function v64AllOpenTickets(){
+    return (Array.isArray(supportTickets) ? supportTickets : []).filter(t => t.status !== 'Encerrado');
+  }
+
+  function v64RenderFloatingSupport(){
+    const launcher = document.getElementById('supportFloatingLauncher');
+    const count = document.getElementById('supportFloatingCount');
+    const list = document.getElementById('supportFloatingList');
+    if(!launcher || !count || !list) return;
+
+    launcher.classList.toggle('hidden', !v64IsAdmin());
+
+    if(!v64IsAdmin()) return;
+
+    const tickets = v64AllOpenTickets();
+    count.textContent = tickets.length;
+    count.classList.toggle('hidden', tickets.length === 0);
+
+    if(!tickets.length){
+      list.innerHTML = '<div class="support-floating-empty">Nenhum atendimento aberto.</div>';
+      return;
+    }
+
+    list.innerHTML = tickets.slice().reverse().map(t => `
+      <button class="support-floating-item" onclick="v55OpenTicketChat(${t.id})">
+        <strong>${safeText(t.subject || 'Atendimento')}</strong>
+        <span>${safeText(t.protocol || 'Sem protocolo')} • ${safeText(t.name || 'Cliente')}</span>
+        <span>${t.customPrompt ? 'Prompt personalizado • R$ ' + safeText(String(t.budget || 0)) : safeText(t.status || 'Aberto')}</span>
+      </button>
+    `).join('');
+  }
+
+  window.v64RenderFloatingSupport = v64RenderFloatingSupport;
+
+  const oldRenderClientArea = typeof renderClientArea === 'function' ? renderClientArea : null;
+  if(oldRenderClientArea){
+    renderClientArea = function(){
+      oldRenderClientArea();
+      v64RenderFloatingSupport();
+    };
+  }
+
+  const oldSaveTickets = typeof saveSupportTickets === 'function' ? saveSupportTickets : null;
+  if(oldSaveTickets){
+    saveSupportTickets = function(){
+      oldSaveTickets();
+      v64RenderFloatingSupport();
+      window.dispatchEvent(new StorageEvent('storage', {
+        key:'am_support_tickets_v43',
+        newValue:localStorage.getItem('am_support_tickets_v43')
+      }));
+    };
+  }
+
+  const oldPublish = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+  if(oldPublish){
+    publishSupportTicket = function(){
+      const beforeIds = new Set((supportTickets || []).map(t => t.id));
+      oldPublish();
+      const created = (supportTickets || []).find(t => !beforeIds.has(t.id));
+      if(created){
+        setTimeout(() => {
+          if(typeof v55OpenTicketChat === 'function') v55OpenTicketChat(created.id);
+          v64RenderFloatingSupport();
+        }, 350);
+      }
+    };
+  }
+
+  const oldOpenChat = typeof v55OpenTicketChat === 'function' ? v55OpenTicketChat : null;
+  if(oldOpenChat){
+    v55OpenTicketChat = function(id){
+      oldOpenChat(id);
+      v64RenderFloatingSupport();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('supportFloatingBtn');
+    const panel = document.getElementById('supportFloatingPanel');
+    const close = document.getElementById('closeSupportFloatingPanel');
+
+    if(btn && panel){
+      btn.addEventListener('click', () => {
+        if(!v64IsAdmin()) return;
+        panel.classList.toggle('hidden');
+        v64RenderFloatingSupport();
+      });
+    }
+    if(close && panel){
+      close.addEventListener('click', () => panel.classList.add('hidden'));
+    }
+
+    document.addEventListener('click', e => {
+      const wrap = document.getElementById('supportFloatingLauncher');
+      if(wrap && !wrap.contains(e.target)){
+        document.getElementById('supportFloatingPanel')?.classList.add('hidden');
+      }
+    });
+
+    setTimeout(v64RenderFloatingSupport, 500);
+    setInterval(v64RenderFloatingSupport, 3000);
+  });
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === 'am_support_tickets_v43' && e.newValue){
+      try{
+        supportTickets = JSON.parse(e.newValue) || [];
+        if(typeof renderClientArea === 'function') renderClientArea();
+        if(typeof V55_TICKET_CHAT_ID !== 'undefined' && V55_TICKET_CHAT_ID && typeof v55RenderTicketChat === 'function') v55RenderTicketChat();
+        v64RenderFloatingSupport();
+      }catch(_e){}
+    }
+    if(e.key === 'am_prompt_reactions_v28' && e.newValue){
+      try{
+        if(typeof updatePromptReactionUI === 'function') updatePromptReactionUI();
+        if(typeof v54FilterPromptMenu === 'function'){
+          const active = document.querySelector('.prompt-menu-filter.active')?.dataset.filter || 'all';
+          v54FilterPromptMenu(active);
+        }
+      }catch(_e){}
+    }
+  });
+})();
+
+
+
+
+// V65 — Correção real: tickets entre contas/computadores via Firebase Firestore
+// Observação: para funcionar entre PCs diferentes, o Firebase Firestore precisa estar habilitado no console Firebase.
+let V65_FIRESTORE = null;
+let V65_FIRESTORE_MOD = null;
+let V65_CLOUD_OK = false;
+let V65_SYNCING = false;
+const V65_TICKETS_DOC = ['assinaturaMagnetica', 'supportTicketsRealtime'];
+
+function v65TicketKey(t){
+  return String(t.id || t.protocol || (t.createdAt + '-' + t.subject));
+}
+function v65MergeTickets(localTickets, cloudTickets){
+  const map = new Map();
+  [...(cloudTickets || []), ...(localTickets || [])].forEach(t => {
+    if(!t) return;
+    const key = v65TicketKey(t);
+    const existing = map.get(key);
+    if(!existing){
+      map.set(key, t);
+      return;
+    }
+    const existingTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+    const nextTime = new Date(t.updatedAt || t.createdAt || 0).getTime();
+    map.set(key, nextTime >= existingTime ? {...existing, ...t} : {...t, ...existing});
+  });
+  return [...map.values()].sort((a,b)=> new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+}
+function v65PersistTicketsMerged(nextTickets, shouldRender=true){
+  supportTickets = v65MergeTickets(supportTickets || [], nextTickets || []);
+  localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets));
+  if(shouldRender){
+    if(typeof renderClientArea === 'function') renderClientArea();
+    if(typeof v64RenderFloatingSupport === 'function') v64RenderFloatingSupport();
+    if(typeof v55RenderAttendances === 'function') v55RenderAttendances();
+    if(typeof v60RenderAttendances === 'function') v60RenderAttendances();
+    if(typeof V55_TICKET_CHAT_ID !== 'undefined' && V55_TICKET_CHAT_ID && typeof v55RenderTicketChat === 'function') v55RenderTicketChat();
+  }
+}
+async function v65InitFirestoreTickets(){
+  try{
+    if(!V36_GOOGLE_FIREBASE_CONFIG || !V36_GOOGLE_FIREBASE_CONFIG.apiKey){
+      console.warn('V65 Firestore: config Firebase ausente.');
+      return false;
+    }
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+    const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    V65_FIRESTORE_MOD = fsMod;
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(V36_GOOGLE_FIREBASE_CONFIG);
+    V65_FIRESTORE = fsMod.getFirestore(app);
+    V65_CLOUD_OK = true;
+
+    const ref = fsMod.doc(V65_FIRESTORE, ...V65_TICKETS_DOC);
+
+    // Escuta tempo real
+    fsMod.onSnapshot(ref, snap => {
+      if(!snap.exists()) return;
+      const cloudTickets = snap.data().tickets || [];
+      v65PersistTicketsMerged(cloudTickets, true);
+    }, err => {
+      console.warn('V65 Firestore listener falhou:', err);
+      V65_CLOUD_OK = false;
+      toast('Firestore não está liberado. Tickets entre PCs precisam do Firestore ativo.');
+    });
+
+    // Primeiro push dos tickets locais existentes
+    setTimeout(v65PushTicketsToCloud, 1200);
+
+    console.info('V65 Firestore tickets ativo.');
+    return true;
+  }catch(err){
+    console.warn('V65 Firestore indisponível:', err);
+    V65_CLOUD_OK = false;
+    return false;
+  }
+}
+async function v65PushTicketsToCloud(){
+  if(!V65_CLOUD_OK || !V65_FIRESTORE || !V65_FIRESTORE_MOD || V65_SYNCING) return;
+  V65_SYNCING = true;
+  try{
+    const ref = V65_FIRESTORE_MOD.doc(V65_FIRESTORE, ...V65_TICKETS_DOC);
+    const snap = await V65_FIRESTORE_MOD.getDoc(ref);
+    const cloudTickets = snap.exists() ? (snap.data().tickets || []) : [];
+    const merged = v65MergeTickets(supportTickets || [], cloudTickets || []);
+    await V65_FIRESTORE_MOD.setDoc(ref, {
+      tickets: merged,
+      updatedAt: Date.now()
+    }, {merge:true});
+    v65PersistTicketsMerged(merged, false);
+  }catch(err){
+    console.warn('V65 push tickets falhou:', err);
+  }finally{
+    V65_SYNCING = false;
+  }
+}
+async function v65PullTicketsFromCloud(){
+  if(!V65_CLOUD_OK || !V65_FIRESTORE || !V65_FIRESTORE_MOD) return;
+  try{
+    const ref = V65_FIRESTORE_MOD.doc(V65_FIRESTORE, ...V65_TICKETS_DOC);
+    const snap = await V65_FIRESTORE_MOD.getDoc(ref);
+    if(snap.exists()){
+      v65PersistTicketsMerged(snap.data().tickets || [], true);
+    }
+  }catch(err){
+    console.warn('V65 pull tickets falhou:', err);
+  }
+}
+
+// Sobrescreve salvamento de tickets para também enviar para nuvem.
+const v65OldSaveSupportTickets = typeof saveSupportTickets === 'function' ? saveSupportTickets : null;
+saveSupportTickets = function(){
+  localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets || []));
+  if(v65OldSaveSupportTickets){
+    try{ v65OldSaveSupportTickets(); }catch(e){}
+  }
+  setTimeout(v65PushTicketsToCloud, 150);
+};
+
+// Reforço após criar ticket: envia para nuvem e abre o chat.
+const v65OldPublishSupportTicket = typeof publishSupportTicket === 'function' ? publishSupportTicket : null;
+if(v65OldPublishSupportTicket){
+  publishSupportTicket = function(){
+    const before = new Set((supportTickets || []).map(t => v65TicketKey(t)));
+    v65OldPublishSupportTicket();
+    const created = (supportTickets || []).find(t => !before.has(v65TicketKey(t)));
+    if(created){
+      created.updatedAt = created.updatedAt || new Date().toISOString();
+      localStorage.setItem('am_support_tickets_v43', JSON.stringify(supportTickets || []));
+      setTimeout(v65PushTicketsToCloud, 200);
+      setTimeout(() => {
+        if(typeof v55OpenTicketChat === 'function') v55OpenTicketChat(created.id);
+      }, 400);
+    }
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(v65InitFirestoreTickets, 800);
+  setInterval(v65PullTicketsFromCloud, 5000);
+  setInterval(v65PushTicketsToCloud, 10000);
+});

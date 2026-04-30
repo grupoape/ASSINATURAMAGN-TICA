@@ -1,0 +1,19 @@
+V65 - TICKETS EM TEMPO REAL ENTRE COMPUTADORES
+
+Para os tickets aparecerem para o admin quando forem criados em outro computador/rede, é obrigatório habilitar o Firestore no Firebase.
+
+PASSOS:
+1. Acesse https://console.firebase.google.com/
+2. Abra o projeto assinatura-magnetica.
+3. Vá em Firestore Database.
+4. Clique em Create database / Criar banco de dados.
+5. Escolha Start in test mode para testar rapidamente.
+6. Depois publique novamente os arquivos do site no GitHub Pages.
+
+IMPORTANTE:
+- localStorage só funciona no mesmo navegador/computador.
+- Firestore é o banco em nuvem que faz o admin ver tickets criados por outros usuários.
+- A V65 já está pronta para usar Firestore quando ele estiver ativo.
+
+COLEÇÃO/DOCUMENTO USADO:
+assinaturaMagnetica/supportTicketsRealtime
